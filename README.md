@@ -1,7 +1,7 @@
-# My Labspace lab
+# My Simspace lab
 
 An interactive, fully in-browser lab built on
-[Labspace](https://github.com/dockersamples/labspace-web). Everything in the terminal
+[Simspace](https://github.com/dockersamples/simspace). Everything in the terminal
 is simulated — no real Docker, backend, or network — so it runs the same for
 everyone, with nothing to install.
 
@@ -26,7 +26,7 @@ Edit the files in `lab/` and refresh the browser to see changes:
 Pin the toolchain to a released version for reproducibility:
 
 ```bash
-export LABSPACE_AUTHORING_IMAGE=dockersamples/labspace-web-authoring:1
+export SIMSPACE_AUTHORING_IMAGE=dockersamples/simspaceweb-authoring:1
 ```
 
 ## Deploy
@@ -56,5 +56,5 @@ pre-allowed, and a hook auto-validates the lab after every edit under `lab/`.
 ## Learn more
 
 See [`AGENTS.md`](AGENTS.md) for an authoring cheat-sheet, and the
-[Labspace specs](https://github.com/dockersamples/labspace-web/tree/main/spec) for the
+[Simspace specs](https://github.com/dockersamples/simspace/tree/main/spec) for the
 full `simulator.yaml` / `labspace.yaml` reference.

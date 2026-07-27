@@ -1,11 +1,11 @@
 # AGENTS.md
 
-Guide for agents authoring this Labspace lab. Read this first.
+Guide for agents authoring this Simspace lab. Read this first.
 
 ## What this repo is
 
 A **single lab**. You only edit files under `lab/`. The app that runs the lab is
-a prebuilt image (`dockersamples/labspace-web`); you never touch app source. The lab
+a prebuilt image (`dockersamples/simspace`); you never touch app source. The lab
 is plain data — Markdown + two YAML files — loaded at runtime, so there is no
 build step for content.
 
@@ -116,5 +116,5 @@ Directives: `:filelink[label]{path="app/x.js"}` (cats a file),
 ## Full specifications
 
 The cheat-sheets above are summaries. The authoritative specs live in the
-platform repo: `dockersamples/labspace-web` → `spec/simulator.md` and
+platform repo: `dockersamples/simspace` → `spec/simulator.md` and
 `spec/labspace.md`.

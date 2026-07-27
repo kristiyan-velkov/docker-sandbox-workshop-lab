@@ -1,5 +1,5 @@
 title: "My Lab"
-description: "A starter Labspace lab — edit these files, preview locally, and push to deploy."
+description: "A starter Simspace lab — edit these files, preview locally, and push to deploy."
 
 # Command behaviour lives in simulator.yaml (relative to this file).
 simulator: simulator.yaml

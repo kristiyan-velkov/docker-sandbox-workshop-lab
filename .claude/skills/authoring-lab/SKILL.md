@@ -1,11 +1,11 @@
 ---
 name: authoring-lab
-description: Author or edit this Labspace lab — add or change instruction sections (markdown), command behaviour (scenarios in simulator.yaml), terminals, controls, seed files, or CI. Use whenever creating lab content, wiring up a new command or agent prompt, or before committing lab changes.
+description: Author or edit this Simspace lab — add or change instruction sections (markdown), command behaviour (scenarios in simulator.yaml), terminals, controls, seed files, or CI. Use whenever creating lab content, wiring up a new command or agent prompt, or before committing lab changes.
 ---
 
-# Authoring a Labspace lab
+# Authoring a Simspace lab
 
-You are editing a **Labspace lab**: instructional markdown plus a deterministic,
+You are editing a **Simspace lab**: instructional markdown plus a deterministic,
 in-browser terminal simulator. You only edit files under `lab/`. Read
 [`AGENTS.md`](../../../AGENTS.md) for the full cheat-sheet and the link to the
 authoritative specs.
