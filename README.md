@@ -26,7 +26,7 @@ Edit the files in `lab/` and refresh the browser to see changes:
 Pin the toolchain to a released version for reproducibility:
 
 ```bash
-export SIMSPACE_AUTHORING_IMAGE=dockersamples/simspaceweb-authoring:1
+export SIMSPACE_AUTHORING_IMAGE=dockersamples/simspace-authoring:1
 ```
 
 ## Deploy
