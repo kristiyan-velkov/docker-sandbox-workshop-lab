@@ -6,15 +6,16 @@ description: Author or edit this Simspace lab — add or change instruction sect
 # Authoring a Simspace lab
 
 You are editing a **Simspace lab**: instructional markdown plus a deterministic,
-in-browser terminal simulator. You only edit files under `lab/`. Read
-[`AGENTS.md`](../../../AGENTS.md) for the full cheat-sheet and the link to the
-authoritative specs.
+in-browser terminal simulator. Each lab lives in its own directory under `labs/`
+(`labs/<id>/`); you only edit files there. The `labs.json` catalog is generated —
+never edit it. Read [`AGENTS.md`](../../../AGENTS.md) for the full cheat-sheet and
+the link to the authoritative specs.
 
 ## The loop (do this every time)
 
-1. Edit files under `lab/`.
-2. Validate: `docker compose run --rm validate` (a PostToolUse hook also runs this
-   automatically after lab edits — fix anything it reports).
+1. Edit files under `labs/<id>/`.
+2. Validate: `docker compose run --rm validate` — checks every lab and regenerates
+   labs.json (a PostToolUse hook also runs it after edits — fix anything it reports).
 3. Preview if useful: `docker compose up dev` → http://localhost:5173 (changes
    show on browser refresh).
 4. **Definition of done:** validation is green _and_, for anything non-trivial,
@@ -29,8 +30,8 @@ state + same command ⇒ same result, always. No time, randomness, or network.
 
 ## Add a section
 
-1. Create `lab/NN-title.md` (numeric prefix keeps ordering obvious).
-2. Register it in `lab/labspace.yaml` under `sections:`:
+1. Create `labs/<id>/NN-title.md` (numeric prefix keeps ordering obvious).
+2. Register it in that lab's `labspace.yaml` under `sections:`:
    ```yaml
    sections:
      - title: My New Section
@@ -60,8 +61,8 @@ Target a specific terminal with `terminal-id=<id>`; link a file with
 
 ## Add a command scenario
 
-Append to `scenarios:` in `lab/simulator.yaml`. Put **specific** cases before
-general ones.
+Append to `scenarios:` in that lab's `simulator.yaml`. Put **specific** cases
+before general ones.
 
 ```yaml
 - id: unique-id # shows up in errors/traces
@@ -121,3 +122,11 @@ Common shapes (see `AGENTS.md` / specs for full detail):
   in `labspace.yaml`.
 
 When in doubt, run the validator — it names the file, scenario, and problem.
+
+## Add another lab
+
+Create a sibling directory `labs/<new-id>/` with its own `labspace.yaml`,
+`simulator.yaml`, and section markdown, then run `validate`. The catalog picks it
+up automatically — with two or more labs the app shows a landing page; nothing
+else to wire up. Give each lab card a look with the optional `catalog:` block in
+its `labspace.yaml` (see the labspace cheat-sheet in `AGENTS.md`).

@@ -1,6 +1,13 @@
 title: "My Lab"
 description: "A starter Simspace lab — edit these files, preview locally, and push to deploy."
 
+# Optional catalog card metadata. It's only shown on the landing page when this
+# repo has two or more labs (a single lab is entered directly). labs.json is
+# GENERATED from this block — you never write or edit labs.json by hand.
+catalog:
+  icon: school
+  tags: ["getting started"]
+
 # Command behaviour lives in simulator.yaml (relative to this file).
 simulator: simulator.yaml
 

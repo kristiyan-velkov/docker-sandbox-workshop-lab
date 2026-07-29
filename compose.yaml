@@ -1,9 +1,9 @@
-# Authoring environment for this lab. Both services use the prebuilt Simspace
-# authoring image and mount only your ./lab directory — you never need Node or
+# Authoring environment for your labs. Both services use the prebuilt Simspace
+# authoring image and mount only your ./labs directory — you never need Node or
 # the app source locally.
 #
 #   docker compose up dev                 # live preview at http://localhost:5173
-#   docker compose run --rm validate      # lint the lab (nonzero exit on errors)
+#   docker compose run --rm validate      # validate labs + regenerate labs.json
 #
 # Pin SIMSPACE_AUTHORING_IMAGE to a released version for reproducible authoring,
 # e.g. export SIMSPACE_AUTHORING_IMAGE=dockersamples/simspace-authoring:1
@@ -11,19 +11,21 @@
 name: my-simspace
 
 services:
-  # Live preview. Edits to ./lab show on browser refresh.
+  # Live preview. Edits to ./labs show on browser refresh. The catalog (labs.json)
+  # is generated on the fly by the app, so there's nothing to build.
   dev:
     image: ${SIMSPACE_AUTHORING_IMAGE:-dockersamples/simspace-authoring:latest}
     command: npm run dev
     ports:
       - "5173:5173"
     volumes:
-      - ./lab:/usr/local/app/public/lab
+      - ./labs:/usr/local/app/public/labs
 
-  # One-shot validator. Run with `docker compose run --rm validate`.
+  # One-shot validator: checks every lab under labs/ and regenerates labs.json.
+  # Run with `docker compose run --rm validate`.
   validate:
     image: ${SIMSPACE_AUTHORING_IMAGE:-dockersamples/simspace-authoring:latest}
     profiles: ["tools"]
-    command: npm run validate-lab -- /lab
+    command: npm run validate-lab -- /labs
     volumes:
-      - ./lab:/lab:ro
+      - ./labs:/labs

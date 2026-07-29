@@ -1,9 +1,9 @@
 #!/usr/bin/env sh
-# PostToolUse hook: after an edit to a file under lab/, validate the lab and, if
-# it's broken, feed the errors back to the agent (exit 2). Defensive by design —
-# it silently skips when the edit isn't a lab file or when Docker isn't around,
-# so it never gets in the way. Delete the `hooks` block in .claude/settings.json
-# to turn it off.
+# PostToolUse hook: after an edit to a file under labs/, validate the labs and, if
+# anything's broken, feed the errors back to the agent (exit 2). Defensive by
+# design — it silently skips when the edit isn't a lab file or when Docker isn't
+# around, so it never gets in the way. Delete the `hooks` block in
+# .claude/settings.json to turn it off.
 #
 # Claude Code passes the tool call as JSON on stdin; we only need file_path.
 
@@ -12,9 +12,9 @@ input="$(cat)"
 # Extract "file_path":"..." without requiring jq.
 path="$(printf '%s' "$input" | sed -n 's/.*"file_path"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"
 
-# Only act on edits inside the lab/ directory.
+# Only act on edits inside the labs/ directory.
 case "$path" in
-  */lab/* | lab/*) ;;
+  */labs/* | labs/*) ;;
   *) exit 0 ;;
 esac
 
