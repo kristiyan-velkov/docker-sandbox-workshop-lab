@@ -128,6 +128,9 @@ variables: { name: world } # $$name$$ substitution in markdown
 Markdown code fences take meta after the language:
 
 - ` ```bash terminal-id=host ` — Run button targets terminal `host`.
+- ` ```prompt terminal-id=agent ` — renders plaintext, Run button sends the
+  prompt into the terminal (e.g. an AI agent session). Use for prompts to type,
+  not shell commands.
 - ` ```yaml save-as=path/to/file ` — Save button writes the block to the FS.
 - `no-run-button`, `no-copy-button`, `highlight=1-2` also supported.
 

@@ -48,6 +48,16 @@ docker ps
 ```
 ````
 
+Prompt fence → renders plaintext, but still gets a **Run** button that sends
+the text into the terminal (e.g. an AI agent session). Use for prompts to type,
+not shell commands:
+
+````markdown
+```prompt terminal-id=agent
+Refactor the server to read the port from an environment variable.
+```
+````
+
 Save-a-file fence → gets a **Save** button (writes to the virtual FS):
 
 ````markdown
