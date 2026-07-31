@@ -42,6 +42,12 @@ non-zero on errors (dangling references, unmatched commands, `{{ args.X }}` with
 no capture, or **no labs found**). Treat a red validate as a broken repo. Edits
 to `labs/` show in the preview on **browser refresh**.
 
+`up dev` also starts the optional **pulse** backend (presence + analytics), so
+live "who's here" presence and the instructor insights dashboard
+(`#/labs/<id>/insights`, token `dev-token`) work while you author. In production
+these are enabled by setting `pulse-endpoint` in `.github/workflows/deploy.yml`;
+opt a lab out with `tracking: false` in its `labspace.yaml`.
+
 In Claude Code, a **PostToolUse hook** (`.claude/`) runs `validate` automatically
 after you edit anything under `labs/` and feeds any errors back to you — so fix
 them before finishing. The `docker compose` and `validate-lab` commands are
