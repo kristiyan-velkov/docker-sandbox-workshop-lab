@@ -26,8 +26,16 @@ included. **Definition of done:** validation green, and you've eyeballed the dec
 in the preview — layouts are visual, and a slide that overflows or a heading that
 lands wrong only shows up on screen.
 
-Open a deck at `#/labs/<id>/` and step with `→`/`←`. Press `s` for the presenter
-window (notes + next slide + timer), `f` for fullscreen.
+Open a deck at `#/labs/<id>/` and step with `→`/`←`.
+
+| Key   | Does                                                                 |
+| ----- | -------------------------------------------------------------------- |
+| `s`   | Presenter window — notes, next slide, timer. **Arrow keys work there too.** |
+| `p`   | Present mode: hides the toolbar, slide fills the window. `Esc` exits. |
+| `f`   | Browser fullscreen                                                   |
+
+Use `p` rather than `f` when capturing a screenshot or recording of a slide — the
+window then contains the slide and nothing else, with no toolbar to crop out.
 
 ## A deck's labspace.yaml
 
