@@ -5,10 +5,15 @@ Interactive, fully in-browser labs built on
 is simulated — no real Docker, backend, or network — so it runs the same for
 everyone, with nothing to install.
 
-You edit labs under [`labs/`](labs/) — each lab in its own `labs/<id>/`
-directory. The app that runs them is a prebuilt image, and labs are loaded at
-runtime, so there's no build step for content. With one lab the app opens it
-directly; with several it shows a landing page to choose from.
+You edit content under [`labs/`](labs/) — each entry in its own `labs/<id>/`
+directory. The app that runs them is a prebuilt image, and content is loaded at
+runtime, so there's no build step. With one entry the app opens it directly; with
+several it shows a landing page to choose from.
+
+An entry is either a **lab** (instructions plus a simulated terminal) or a **slide
+deck** (`kind: slides` — presentation slides that can embed a live demo terminal).
+A workshop is usually both: slides to introduce it, a lab to work through, two
+cards on the landing page, one deploy.
 
 ## Author locally
 
@@ -22,12 +27,17 @@ docker compose run --rm validate   # validate every lab (fails on errors)
 Edit the files under `labs/<id>/` and refresh the browser to see changes:
 
 - `labspace.yaml` — title, catalog card, terminals, seed files, sections, variables
-- `simulator.yaml` — what each command does (scenarios)
-- `*.md` — one file per section of instructions
+  (plus `kind: slides`, `theme:`, and `brand:` for a deck)
+- `simulator.yaml` — what each command does (scenarios). Optional for a deck; point
+  it at a sibling lab's spec to reuse it.
+- `*.md` — one file per section of instructions, or per chapter of slides
 
-The `labs.json` catalog is **generated** from each lab's `labspace.yaml` (by the
-preview server and by `validate`), so you never write or edit it. Add a lab by
-adding a `labs/<new-id>/` directory and running `validate`.
+The `labs.json` catalog is **generated** from each entry's `labspace.yaml` (by the
+preview server and by `validate`), so you never write or edit it. Add a lab or a
+deck by adding a `labs/<new-id>/` directory and running `validate`.
+
+Working with Claude Code? Two skills cover authoring: **authoring-lab** and
+**authoring-slidedeck**. [`AGENTS.md`](AGENTS.md) is the cheat-sheet for both.
 
 Pin the toolchain to a released version for reproducibility:
 

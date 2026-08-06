@@ -1,6 +1,6 @@
 ---
 name: authoring-lab
-description: Author or edit this Simspace lab — add or change instruction sections (markdown), command behaviour (scenarios in simulator.yaml), terminals, controls, seed files, or CI. Use whenever creating lab content, wiring up a new command or agent prompt, or before committing lab changes.
+description: Author or edit a Simspace lab — add or change instruction sections (markdown), command behaviour (scenarios in simulator.yaml), terminals, controls, seed files, or CI. Use whenever creating lab content, wiring up a new command or agent prompt, or before committing lab changes. For presentation slides (an entry with `kind: slides`), use authoring-slidedeck instead.
 ---
 
 # Authoring a Simspace lab
@@ -10,6 +10,12 @@ in-browser terminal simulator. Each lab lives in its own directory under `labs/`
 (`labs/<id>/`); you only edit files there. The `labs.json` catalog is generated —
 never edit it. Read [`AGENTS.md`](../../../AGENTS.md) for the full cheat-sheet and
 the link to the authoritative specs.
+
+**Building presentation slides instead?** Use the **authoring-slidedeck** skill.
+A deck is an entry with `kind: slides` — same `labspace.yaml` format, but slides,
+layouts, and a theme rather than sections. Everything in *this* skill about
+`simulator.yaml` still applies to a deck's live demos, and a deck usually reuses
+its sibling lab's spec rather than defining its own.
 
 ## The loop (do this every time)
 
@@ -137,6 +143,14 @@ When in doubt, run the validator — it names the file, scenario, and problem.
 
 Create a sibling directory `labs/<new-id>/` with its own `labspace.yaml`,
 `simulator.yaml`, and section markdown, then run `validate`. The catalog picks it
-up automatically — with two or more labs the app shows a landing page; nothing
-else to wire up. Give each lab card a look with the optional `catalog:` block in
-its `labspace.yaml` (see the labspace cheat-sheet in `AGENTS.md`).
+up automatically — with two or more entries the app shows a landing page; nothing
+else to wire up. Give each card a look with the optional `catalog:` block in its
+`labspace.yaml` (see the labspace cheat-sheet in `AGENTS.md`).
+
+## Pairing a lab with slides
+
+Workshops usually want both. Add a deck as a sibling entry
+(`labs/<lab-id>-slides/` with `kind: slides`), pointing its `simulator:` at
+**this** lab's spec so the demos on the slides run the exact commands the learners
+will run — the two then can't drift apart. Set `catalog.order` so the deck sorts
+first. See the **authoring-slidedeck** skill.
