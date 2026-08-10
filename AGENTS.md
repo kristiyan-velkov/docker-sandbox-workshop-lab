@@ -38,7 +38,8 @@ labs/
 compose.yaml              # `up dev` to preview, `run --rm validate` to check
 Dockerfile                # optional: build a container that serves these entries
 CLAUDE.md                 # loads this guide automatically in Claude Code
-.claude/                  # skills (authoring-lab, authoring-slidedeck), perms, validate hook
+.claude/                  # skills (authoring-lab, authoring-slidedeck,
+                          #   importing-slidedeck), perms, validate hook
 .github/workflows/        # validate.yml (PRs) + deploy.yml (Pages on push to main)
 ```
 
@@ -87,7 +88,7 @@ validates and GitHub Pages deploys automatically. Pull requests are validated by
 Same shape, with `kind: slides` in `labspace.yaml` and `slides:` in place of
 `sections:`. Each chapter file is ordinary markdown split into slides on a line of
 `---`, with `Note:` for speaker notes and a leading `<!-- layout: … -->` comment
-choosing one of six layouts. `simulator:` is **optional** for a deck — point it at
+choosing one of seven layouts. `simulator:` is **optional** for a deck — point it at
 a sibling lab's spec (`../<lab-id>/simulator.yaml`) if you want live demos that run
 the same commands the learners will.
 
@@ -101,6 +102,12 @@ slides:
 
 **Use the authoring-slidedeck skill** for the layouts, components, and the
 in-slide terminal — there's more to it than fits here.
+
+**Bringing over an existing deck** from PowerPoint, Google Slides, Keynote or a
+PDF? Use the **importing-slidedeck** skill. It reads the source's real structure —
+shape geometry, placeholder roles, speaker notes, animation builds — and maps each
+slide onto the layouts above. Decks imported as screenshots of their old slides
+are the failure mode it exists to prevent.
 
 > [!IMPORTANT]
 > `---` is the slide separator. If you add a markdown formatter to this repo,
@@ -176,7 +183,9 @@ variables: { name: world } # $$name$$ substitution in markdown
 
 Markdown code fences take meta after the language:
 
-- ` ```bash terminal-id=host ` — Run button targets terminal `host`.
+- ` ```bash terminal-id=host ` — Run button targets terminal `host`. **On a
+  slide this is what creates the Run button at all** — deck fences are samples
+  by default, so `no-run-button` is only ever needed in a lab.
 - ` ```prompt terminal-id=agent ` — renders plaintext, Run button sends the
   prompt into the terminal (e.g. an AI agent session). Use for prompts to type,
   not shell commands.

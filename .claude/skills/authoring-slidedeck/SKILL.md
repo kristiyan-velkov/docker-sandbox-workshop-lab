@@ -14,6 +14,11 @@ If you're editing command behaviour (`simulator.yaml` scenarios), use the
 **authoring-lab** skill instead; that's the same for a deck as for a lab. This
 skill is the presentation surface.
 
+**Converting a deck from PowerPoint, Google Slides, Keynote, or a PDF?** Start
+with the **importing-slidedeck** skill — it covers reading the source's structure
+and mapping each slide onto the layouts below. Come back here for the details of
+whatever it tells you to write.
+
 ## The loop (identical to a lab)
 
 ```bash
@@ -85,7 +90,7 @@ logo: assets/docker-logo-white.svg
 
 :tag[Before]{accent=red}
 
-```dockerfile filename="Dockerfile · naive" highlight=2 no-run-button
+```dockerfile filename="Dockerfile · naive" highlight=2
 FROM golang:1.22
 COPY . .
 ```
@@ -122,9 +127,10 @@ Four things are doing work there:
 | `default` _(if omitted)_ | Heading, then content flowing beneath. The workhorse. |
 | `title`              | Opener: centred, largest type, `byline:` in the footer    |
 | `section`            | Chapter divider: eyebrow, huge title, one supporting line |
-| `split`              | Regions as equal columns (see below)                      |
+| `split`              | Regions as columns, equal unless `columns:` says otherwise |
 | `stats`              | Heading, then `:::stat` blocks side by side               |
 | `quote`              | A pull quote at billboard size, with attribution          |
+| `image`              | Full-bleed picture with the words in a panel over it      |
 
 **`split` region rule** — the one thing to get right:
 
@@ -148,6 +154,46 @@ left
 right
 ```
 
+**Unequal columns** — `columns:` weights a `split` instead of halving it:
+
+```markdown
+<!--
+layout: split
+columns: 1 2
+-->
+
+# A narrow label against a wide description
+```
+
+Weights are relative (`1 2` = `50 100`) and apply to the **columns**, so a slide
+with a header band takes one weight per column, not per region. A ratio that
+doesn't match the column count is ignored and `validate` warns.
+
+**An image-led slide** — `layout: image` bleeds a picture to the canvas edge:
+
+```markdown
+<!--
+layout: image
+image: assets/keynote-stage.jpg
+alt: "The keynote stage, mid-demo, from the back of the hall"
+logo: assets/docker-logo-white.svg
+-->
+
+# The Docker Zone
+
+Build what's next — an instruction, not a slogan.
+```
+
+- `image:` is **required**, and it's config rather than an `![](…)` in the body:
+  a markdown image is a figure inside the text flow, which is the right thing for
+  a diagram but can't reach the edge of the slide. Both are supported; pick by
+  whether the picture *is* the slide or sits *on* it.
+- `alt:` describes the picture. It's the slide's content here, so `validate`
+  warns without it.
+- The picture is cropped to fill (`cover`), not letterboxed.
+- Heading and body are optional — omit both for a slide that's only a picture,
+  and add `chrome: false` for a true full-bleed frame.
+
 Conventions attached to specific layouts:
 
 - `title` and `section` treat the paragraph right after the `#` heading as a
@@ -161,7 +207,10 @@ Conventions attached to specific layouts:
 
 | Key       | Effect                                                                 |
 | --------- | ---------------------------------------------------------------------- |
-| `layout`  | One of the six above. Default `default`.                                |
+| `layout`  | One of the seven above. Default `default`.                              |
+| `columns` | Column weights for a `split`, e.g. `1 2`. Default: equal.               |
+| `image`   | Full-bleed picture for `layout: image` (slide-relative). Required there. |
+| `alt`     | Description of that picture.                                            |
 | `theme`   | `light` · `dark` · `tint`                                              |
 | `eyebrow` | Top-right label. `""` suppresses the deck default.                      |
 | `source`  | Bottom-left citation. `""` suppresses the deck default.                 |
@@ -169,7 +218,7 @@ Conventions attached to specific layouts:
 | `logo`    | Overrides the deck logo — **a dark slide needs the reversed (white) mark** |
 | `chrome`  | `false` hides both bands on this slide                                  |
 
-**Theme defaults:** `title` defaults to `dark` and `section` to `tint`, and those
+**Theme defaults:** `title` and `image` default to `dark`, `section` to `tint`, and those
 beat the deck-wide `theme:`. So a deck set to `light` still gets branded chapter
 markers; say `theme: light` on the slide itself if you want a pale divider.
 
@@ -229,6 +278,10 @@ docker run -d --name web -p 8080:80 nginx
 ::terminal{id=demo height=300}
 ````
 
+- **`terminal-id=` is what gives a fence its Run button on a slide.** Unlike a
+  lab, slide code fences have no Run button by default — slide code is nearly
+  always a sample being read, not a command. So `no-run-button` is unnecessary
+  here, and a plain ` ```dockerfile ` block is just a sample, as intended.
 - Requires `simulator:` and a matching `terminals:` id in `labspace.yaml`. Without
   one, the directive renders an explanation instead of a dead black box.
 - **All terminals in a deck share one machine**, so demo state accumulates across

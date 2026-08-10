@@ -4,3 +4,6 @@ site/
 
 # Generated from labs/*/labspace.yaml — never commit it.
 labs.json
+
+# Byte-code from the skills' Python helpers.
+__pycache__/
