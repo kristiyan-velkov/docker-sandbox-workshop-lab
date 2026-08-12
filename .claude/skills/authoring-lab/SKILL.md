@@ -20,12 +20,16 @@ its sibling lab's spec rather than defining its own.
 ## The loop (do this every time)
 
 1. Edit files under `labs/<id>/`.
-2. Validate: `docker compose run --rm validate` — checks every lab and regenerates
+2. Give every hands-on section **milestones** (`steps:` + `completes:`) — see
+   [Milestones](#milestones-every-lab-needs-them). This is the step most often
+   skipped, and skipping it silently breaks the lab's analytics.
+3. Validate: `docker compose run --rm validate` — checks every lab and regenerates
    labs.json (a PostToolUse hook also runs it after edits — fix anything it reports).
-3. Preview if useful: `docker compose up dev` → http://localhost:5173 (changes
+4. Preview if useful: `docker compose up dev` → http://localhost:5173 (changes
    show on browser refresh).
-4. **Definition of done:** validation is green _and_, for anything non-trivial,
-   you've eyeballed it in the preview.
+5. **Definition of done:** validation is green, every hands-on section has at
+   least one milestone, _and_, for anything non-trivial, you've eyeballed it in
+   the preview.
 
 ## Mental model
 
@@ -45,6 +49,8 @@ state + same command ⇒ same result, always. No time, randomness, or network.
    ```
 3. Any command you tell the learner to run needs a scenario (below) or it will
    fail validation as unreachable.
+4. If the section asks the learner to *do* something, give it `steps:` and tag
+   the proving scenario with `completes:` — see [Milestones](#milestones-every-lab-needs-them).
 
 Runnable code fence → gets a **Run** button:
 
@@ -124,6 +130,101 @@ Common shapes (see `AGENTS.md` / specs for full detail):
           - { delay: scan } # hold a beat while it "analyses"
           - "1 vulnerability found in 1 package"
   ```
+
+## Milestones (every lab needs them)
+
+A **step** is an author-declared checkpoint: "the learner actually ran this."
+Steps are what drive the nav check-marks, the learner's saved progress, and the
+whole Pulse instructor funnel. They're opt-in in the format but **not optional in
+practice** — a lab with no steps reports nothing but "N people started," and
+`lab_completed` never fires at all, because the app emits it only once *every*
+cataloged step is done. Validation stays green either way, so nothing will remind
+you: adding steps is on you.
+
+Budget roughly **one step per thing you ask the learner to do** — 3–8 across a
+typical lab. They're a funnel, so a step should mark real forward progress, not
+every command typed.
+
+Two halves that must line up:
+
+1. **Catalog the checkpoints** on the section in `labspace.yaml`:
+
+   ```yaml
+   sections:
+     - title: Running containers
+       contentPath: 01-run.md
+       steps:
+         - id: run-container # referenced by `completes:`; defaults to slugify(title)
+           title: "Run a container" # label in the progress UI and funnel
+         - id: stop-container
+           title: "Stop the container"
+   ```
+
+2. **Tag the scenario that proves it** in `simulator.yaml`. `completes` is a
+   sibling of `when`/`then`, not inside `then`:
+
+   ```yaml
+   - id: docker-run
+     completes: run-container # fires when this scenario matches
+     when:
+       command: [docker, run]
+       state: { container.running: false }
+     then:
+       state: { container.running: true }
+       output: ["…"]
+   ```
+
+Notes:
+
+- Because firing is already gated on the right command **and** the right state,
+  a step is a strong signal — not "they read the page."
+- The funnel renders steps in **catalog order** (section order, then step order),
+  between a "Started the lab" anchor and a "Completed the lab" goal — so declare
+  them in the order learners actually reach them, or the drop-off chart lies.
+- Several scenarios may complete the **same** step (e.g. `greet` with or without
+  a `--name` flag). Do that instead of forcing one path.
+- Works the same for agent scenarios (`when.agent: true`).
+- For an interactive-input scenario, `completes` fires on **submission**; an
+  abort (`/cancel`) completes nothing.
+- Reading-only sections legitimately have no `steps:` — omit the key entirely.
+- Validation **errors** on a `completes:` naming an unknown step id, and **warns**
+  on a cataloged step no scenario completes. Both mean the two halves drifted.
+- Renaming or removing step ids invalidates learners' stored progress for that
+  lab version — settle on ids while authoring, then keep them stable.
+
+## Make the output look real
+
+Invented output is what makes a lab feel fake: a column header the CLI doesn't
+print, a flag that doesn't exist, an empty-state message nobody would recognise.
+Before writing `then.output` for a real tool, check
+**[`dockersamples/sample-cli-output`](https://github.com/dockersamples/sample-cli-output)** —
+one markdown file per subcommand, each with the live `--help` text and real
+example output, organised by tool and version.
+
+```bash
+# what tools/versions are covered
+curl -s https://raw.githubusercontent.com/dockersamples/sample-cli-output/main/README.md
+# command → file map for one version
+curl -s https://raw.githubusercontent.com/dockersamples/sample-cli-output/main/sbx/v0.38.0/INDEX.md
+# the sample output for one subcommand
+curl -s https://raw.githubusercontent.com/dockersamples/sample-cli-output/main/sbx/v0.38.0/sbx-list.md
+```
+
+(`gh api repos/dockersamples/sample-cli-output/contents/<path>` or a WebFetch of
+the same raw URL work equally well — it's a public repo.)
+
+Use it to:
+
+- copy column headers, spacing, status strings, and id formats **verbatim**;
+- confirm the flags you tell learners to type actually exist in that version —
+  the `--help` capture is the source of truth, not your recollection;
+- lift the real empty-state and error text for scenarios that model a mistake;
+- read from the **version directory matching the tool version the lab teaches**.
+
+If a command has no file there, keep the invented output minimal and plausible
+rather than embellishing — and say so when you hand the lab over, since the gap
+is worth filling in that repo (run its `scripts/generate-<tool>.sh` if you have
+the CLI installed).
 
 ## Gotchas that cause validation errors
 

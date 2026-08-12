@@ -310,6 +310,11 @@ docker run -d --name web -p 8080:80 nginx
   which would silently split one slide into two.
 - **Layouts are visual.** Validation can't tell you a slide is overcrowded or that
   a heading wrapped badly. Look at it in the preview.
+- **Terminal output on a slide should be real output** — a projector is where a
+  made-up column header or a non-existent flag gets noticed. Nothing validates it,
+  so check [`dockersamples/sample-cli-output`](https://github.com/dockersamples/sample-cli-output)
+  (per tool and version: live `--help` plus real example output) before writing a
+  sample fence or a demo scenario. See the **authoring-lab** skill for how to use it.
 - **Sharing a lab's `simulator.yaml` is the recommended pattern.** `validate`
   knows the spec isn't yours and won't complain about terminal ids or `completes:`
   step ids that belong to the lab.

@@ -21,7 +21,10 @@ defaults:
 scenarios:
   # A plain command. `command:` is the leading tokens; trailing args are ignored
   # unless you match them with `args:`.
+  # `completes:` marks a step from labspace.yaml done when this scenario fires —
+  # a real "they did it" signal, since firing is gated on command AND state.
   - id: echo
+    completes: say-hello
     when:
       command: [echo]
     then:
@@ -31,6 +34,7 @@ scenarios:
   # Capture a positional argument and template it into the output. `{{ args.0 }}`
   # is the first token after the command path.
   - id: docker-run
+    completes: run-a-container
     when:
       command: [docker, run]
       args:

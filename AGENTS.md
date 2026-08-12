@@ -70,7 +70,8 @@ after you edit anything under `labs/` and feeds any errors back to you — so fi
 them before finishing. The `docker compose` and `validate-lab` commands are
 pre-allowed, so they won't prompt.
 
-**Definition of done:** validation is green, and for anything non-trivial you've
+**Definition of done:** validation is green, every hands-on section has at least
+one milestone (`steps:` + `completes:`, below), and for anything non-trivial you've
 eyeballed it in `docker compose up dev`. Then commit and push to `main` → CI
 validates and GitHub Pages deploys automatically. Pull requests are validated by
 `.github/workflows/validate.yml` before merge.
@@ -80,7 +81,9 @@ validates and GitHub Pages deploys automatically. Pull requests are validated by
 1. Create a directory `labs/<id>/` (the `<id>` is the URL segment when there are
    several entries, and it namespaces saved state — keep it stable).
 2. Add `labspace.yaml`, `simulator.yaml`, and your section markdown (below).
-3. Run `validate` — it picks up the new entry and regenerates the catalog. With two
+3. Give each hands-on section its milestones — `steps:` in `labspace.yaml`, and a
+   `completes:` on the scenario that proves each one. See "Milestones" below.
+4. Run `validate` — it picks up the new entry and regenerates the catalog. With two
    or more a landing page appears automatically; nothing else to wire up.
 
 ## Adding a slide deck
@@ -126,6 +129,7 @@ version: "2.0"
 state: { container: { running: false } } # initial state tree
 scenarios:
   - id: run # unique id
+    completes: run-container # OPTIONAL: marks a labspace.yaml step done — see "Milestones"
     when:
       command: [docker, run] # leading command tokens
       args: { --name: { any: true } } # flag/positional matchers (capture with any/oneOf)
@@ -166,6 +170,57 @@ Key rules:
 
 - Put specific scenarios **before** general ones; the first match wins.
 
+## Milestones — give every lab `steps:`
+
+A **step** is a checkpoint the learner reaches by running the right command in
+the right state. Declare the checkpoints on a section in `labspace.yaml`, then
+tag the scenario that proves each one with `completes:`:
+
+```yaml
+# labspace.yaml
+sections:
+  - title: Running containers
+    contentPath: 01-run.md
+    steps:
+      - id: run-container # referenced by `completes:`
+        title: "Run a container" # label in the nav and instructor funnel
+```
+
+```yaml
+# simulator.yaml — `completes` sits beside `when`/`then`, not inside `then`
+- id: docker-run
+  completes: run-container
+  when: { command: [docker, run] }
+  then: { output: ["…"] }
+```
+
+This is opt-in in the format but expected in practice: steps drive the nav
+check-marks, the learner's saved progress, and the entire pulse funnel. A lab
+with no steps reports only "N people started" — `lab_completed` fires only once
+*every* cataloged step is done, so it never fires at all. Validation stays green
+without them, so nothing will remind you. Reading-only sections omit `steps:`;
+aim for one step per thing you actually ask the learner to do.
+
+Validation **errors** on a `completes:` naming an unknown step id and **warns**
+on a cataloged step no scenario completes. Step ids namespace saved progress —
+keep them stable once published.
+
+## Realistic command output
+
+Mock output should match what the real CLI prints. **Check
+[`dockersamples/sample-cli-output`](https://github.com/dockersamples/sample-cli-output)**
+before inventing any — it holds, per tool and version, one markdown file per
+subcommand with the live `--help` text and real example output.
+
+```bash
+curl -s https://raw.githubusercontent.com/dockersamples/sample-cli-output/main/README.md
+curl -s https://raw.githubusercontent.com/dockersamples/sample-cli-output/main/sbx/v0.38.0/INDEX.md
+```
+
+Copy headers, spacing, ids, and error/empty-state text verbatim, and confirm
+against `--help` that the flags you ask learners to type exist in the version the
+lab teaches.
+
 ## labspace.yaml cheat-sheet
 
 ```yaml
@@ -177,7 +232,11 @@ catalog: # OPTIONAL landing-page card (shown only with 2+ labs)
   tags: ["intro"] #   tags, estimatedMinutes, order. labs.json is generated from this.
 terminals: [{ id: host, title: Terminal, icon: terminal }] # multiple share one machine
 files: { "path": "seed contents" } # virtual filesystem seed
-sections: [{ title: "Intro", contentPath: 00-intro.md }] # ordered pages
+sections: # ordered pages; `steps:` are this section's milestones (see above)
+  - { title: "Intro", contentPath: 00-intro.md }
+  - title: "Run it"
+    contentPath: 01-run.md
+    steps: [{ id: run-container, title: "Run a container" }]
 variables: { name: world } # $$name$$ substitution in markdown
 ```
 
