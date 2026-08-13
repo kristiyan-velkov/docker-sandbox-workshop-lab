@@ -5,5 +5,6 @@ site/
 # Generated from labs/*/labspace.yaml — never commit it.
 labs.json
 
-# Byte-code from the skills' Python helpers.
-__pycache__/
+# Personal overlay for .sbxenv.yaml — machine-specific sandbox settings, passed
+# as `sbx env run .sbxenv.yaml local.sbxenv.yaml`.
+local.sbxenv.yaml
