@@ -1,0 +1,55 @@
+title: "Lab 2 — Network Policy"
+description: "Default-deny network policy, allow/deny hosts, and audit logging with sbx policy."
+
+catalog:
+  icon: shield
+  tags: ["network", "policy", "governance"]
+  estimatedMinutes: 35
+  order: 2
+
+simulator: simulator.yaml
+
+terminals:
+  - id: host
+    title: Host
+    icon: dns
+  - id: sandbox
+    title: Sandbox
+    icon: smart_toy
+
+controls:
+  - id: allow-dockerfrontend
+    label: "Allow www.dockerfrontend.com (global)"
+    description: "Adds a network allow rule for the Docker books site."
+    state: network.dockerfrontendAllowed
+    enabled: true
+    disabled: false
+
+sections:
+  - title: Introduction
+    contentPath: 00-intro.md
+  - title: Initialize policy
+    contentPath: 01-init.md
+    steps:
+      - id: policy-init
+        title: "Initialize balanced policy"
+  - title: Default deny
+    contentPath: 02-deny.md
+    steps:
+      - id: curl-blocked
+        title: "Confirm blocked curl"
+  - title: Allow and verify
+    contentPath: 03-allow.md
+    steps:
+      - id: curl-allowed
+        title: "Curl after allow rule"
+  - title: Sandbox-scoped deny
+    contentPath: 04-scoped.md
+    steps:
+      - id: scoped-deny
+        title: "Deny for this sandbox only"
+  - title: Clean up
+    contentPath: 05-cleanup.md
+    steps:
+      - id: cleanup
+        title: "Remove rules and sandbox"

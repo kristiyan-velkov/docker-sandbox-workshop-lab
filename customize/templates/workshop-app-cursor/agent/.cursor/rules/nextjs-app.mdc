@@ -1,0 +1,16 @@
+---
+description: Generic Next.js App Router agent rules for sandboxed development
+alwaysApply: true
+---
+
+# Next.js in Docker Sandbox
+
+You are a Cursor agent running inside a Docker Sandbox microVM.
+
+- **Default to Server Components** — `"use client"` only when hooks or browser APIs are required
+- **Run build gates** — `npm run build` and `npm run lint` before finishing substantive UI work
+- **Secrets on the host** — never write API keys into source; use `sbx secret set` on the host
+- **Network** — outbound traffic is proxy-filtered; ask the user to adjust `sbx policy` on the host if installs fail
+- **Read Next.js 16 docs** in `node_modules/next/dist/docs/` — this version has breaking changes
+
+Workshop-specific routes and copy live in workspace `.cursor/rules/` when a kit is applied.

@@ -1,0 +1,27 @@
+title: "Docker Sandboxes Workshop — Live Track"
+description: |
+  Hands-on Docker Sandboxes workshop with a real terminal. Run sbx commands on
+  your machine while following step-by-step instructions — install, network policy,
+  secrets, clone workflow, kits, and custom stack.
+
+services:
+  - title: Terminal
+    id: term1
+    url: http://localhost:8085
+    icon: terminal
+
+sections:
+  - title: Welcome
+    contentPath: .labspace/00-welcome.md
+  - title: "Lab 1 — First Sandbox"
+    contentPath: docs/lab-01-first-sandbox.md
+  - title: "Lab 2 — Network Policy"
+    contentPath: docs/lab-02-network-policy.md
+  - title: "Lab 3 — Secrets"
+    contentPath: docs/lab-03-secrets.md
+  - title: "Lab 4 — Clone Workflow"
+    contentPath: docs/lab-04-clone-workflow.md
+  - title: "Lab 5 — Workshop App & Kit"
+    contentPath: docs/lab-05-workshop-app.md
+  - title: "Lab 6 — Custom Kit"
+    contentPath: docs/lab-06-customize-stack.md

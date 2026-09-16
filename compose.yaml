@@ -9,7 +9,7 @@
 #   export SIMSPACE_AUTHORING_IMAGE=dockersamples/simspace-authoring:1
 #   export SIMSPACE_PULSE_IMAGE=dockersamples/simspace-pulse:1
 
-name: my-simspace
+name: docker-sandbox-workshop-lab
 
 services:
   # Live preview. Edits to ./labs show on browser refresh. The catalog (labs.json)

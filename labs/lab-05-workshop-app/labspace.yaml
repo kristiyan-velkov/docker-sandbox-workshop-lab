@@ -1,0 +1,44 @@
+title: "Lab 5 — Workshop App & Kit"
+description: "Run workshop-app with the pre-built workshop-app-nextjs kit — bootstrap, dev server, network demo."
+
+catalog:
+  icon: web
+  tags: ["kit", "nextjs", "network"]
+  estimatedMinutes: 20
+  order: 5
+
+simulator: simulator.yaml
+
+terminals:
+  - id: host
+    title: Host
+    icon: dns
+
+sections:
+  - title: Introduction
+    contentPath: 00-intro.md
+  - title: Run with kit
+    contentPath: 01-run.md
+    steps:
+      - id: kit-run
+        title: "Start lab5-kit with kit"
+  - title: Allowed research
+    contentPath: 02-allowed.md
+    steps:
+      - id: allowed-sites
+        title: "Research allowed domains"
+  - title: Denied sites
+    contentPath: 03-denied.md
+    steps:
+      - id: denied-sites
+        title: "Google and LinkedIn blocked"
+  - title: Inspect kit
+    contentPath: 04-inspect.md
+    steps:
+      - id: inspect-kit
+        title: "List kit injections"
+  - title: Clean up
+    contentPath: 05-cleanup.md
+    steps:
+      - id: cleanup
+        title: "Remove sandbox"

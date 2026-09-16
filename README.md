@@ -1,96 +1,75 @@
-# My Simspace labs
+# Docker Sandboxes Workshop — Lab
 
-Interactive, fully in-browser labs built on
-[Simspace](https://github.com/dockersamples/simspace). Everything in the terminal
-is simulated — no real Docker, backend, or network — so it runs the same for
-everyone, with nothing to install.
+Interactive Docker Sandboxes workshop built on [Simspace](https://github.com/dockersamples/simspace). Six labs covering install, network policy, secrets, clone workflow, pre-built kits, and custom kit authoring.
 
-You edit content under [`labs/`](labs/) — each entry in its own `labs/<id>/`
-directory. The app that runs them is a prebuilt image, and content is loaded at
-runtime, so there's no build step. With one entry the app opens it directly; with
-several it shows a landing page to choose from.
+Two delivery tracks:
 
-An entry is either a **lab** (instructions plus a simulated terminal) or a **slide
-deck** (`kind: slides` — presentation slides that can embed a live demo terminal).
-A workshop is usually both: slides to introduce it, a lab to work through, two
-cards on the landing page, one deploy.
+| Track | Command | URL | Terminal |
+|-------|---------|-----|----------|
+| **Self-paced (Simspace)** | `docker compose up dev` | http://localhost:5173 | Simulated in browser — no install |
+| **Live workshop (Labspace)** | `bash start-labspace.sh` | http://localhost:3030 | Real `sbx` on your machine |
 
-## Author locally
+## Labs
 
-You only need Docker.
+| # | Simspace entry | Topic | Time |
+|---|----------------|-------|------|
+| 1 | `lab-01-first-sandbox` | Install, first sandbox, workspace boundary | ~25 min |
+| 2 | `lab-02-network-policy` | Default deny, allow/deny, audit log | ~35 min |
+| 3 | `lab-03-secrets` | GitHub credential proxy, sentinel values | ~20 min |
+| 4 | `lab-04-clone-workflow` | Direct vs `--clone` Git workflow | ~25 min |
+| 5 | `lab-05-workshop-app` | Pre-built kit, dev server, network demo | ~20 min |
+| 6 | `lab-06-customize-stack` | Build your own mixin kit | ~25 min |
 
-```bash
-docker compose up dev              # live preview at http://localhost:5173
-docker compose run --rm validate   # validate every lab (fails on errors)
-```
+## Self-paced preview (Simspace)
 
-Edit the files under `labs/<id>/` and refresh the browser to see changes:
-
-- `labspace.yaml` — title, catalog card, terminals, seed files, sections, variables
-  (plus `kind: slides`, `theme:`, and `brand:` for a deck)
-- `simulator.yaml` — what each command does (scenarios). Optional for a deck; point
-  it at a sibling lab's spec to reuse it.
-- `*.md` — one file per section of instructions, or per chapter of slides
-
-The `labs.json` catalog is **generated** from each entry's `labspace.yaml` (by the
-preview server and by `validate`), so you never write or edit it. Add a lab or a
-deck by adding a `labs/<new-id>/` directory and running `validate`.
-
-Working with Claude Code? See [Authoring with an AI agent](#authoring-with-an-ai-agent)
-below — one command gets you an agent that already knows the format.
-
-Pin the toolchain to a released version for reproducibility:
+Requires Docker only.
 
 ```bash
-export SIMSPACE_AUTHORING_IMAGE=dockersamples/simspace-authoring:1
+docker compose up dev
+# → http://localhost:5173
 ```
 
-## Deploy
-
-**GitHub Pages (default):** enable Pages (Settings → Pages → Source: "GitHub
-Actions"), then push to `main`. The workflow in
-[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) validates the labs,
-generates the catalog, and publishes. Pin `runtime-tag` there to a released
-version for a stable site. Pull requests are validated first by
-[`.github/workflows/validate.yml`](.github/workflows/validate.yml).
-
-**As a container:** the [`Dockerfile`](Dockerfile) bases on the runtime image,
-generates the catalog, and swaps in your labs.
+Validate all labs:
 
 ```bash
-docker build -t my-lab .
-docker run --rm -p 8080:80 my-lab    # http://localhost:8080
+docker compose run --rm validate
 ```
 
-## Authoring with an AI agent
+Edit content under `labs/<id>/` — each lab has `labspace.yaml`, `simulator.yaml`, and markdown sections. Push to `main` to deploy to GitHub Pages (enable Pages → Source: GitHub Actions).
 
-[`.sbxenv.yaml`](.sbxenv.yaml) describes a [Docker
-Sandbox](https://docs.docker.com/ai/sandboxes/) for authoring this repo. One
-command:
+## Live workshop (Labspace)
+
+Requires `sbx`, `ttyd`, and a Cursor API key (`sbx secret set -g cursor`).
+
+```bash
+bash start-labspace.sh
+# → http://localhost:3030
+```
+
+Instructions in the left panel; real terminal on the right. Content in `docs/` and `labspace.yaml`.
+
+## Repo layout
+
+```
+labs/                    # Simspace — 6 browser labs
+docs/                    # Labspace — real sbx step guides
+labspace.yaml            # Labspace manifest
+workshop-app/            # Next.js playground (labs 4–6)
+customize/               # Templates and workshop-app-nextjs kit
+kit-template/            # Blank kit scaffold for Lab 6
+start-labspace.sh        # Launch live workshop track
+```
+
+## Authoring with an agent
 
 ```bash
 sbx env run
 ```
 
-You get Claude Code with the **authoring-lab**, **authoring-slidedeck** and
-**importing-slidedeck** skills already installed, Docker inside the sandbox so
-`docker compose up dev` works, and ports 5173 and 8888 published to your own
-browser. Needs `sbx` 0.39.0 or later.
-
-The skills come from the
-[`simspace-authoring-kit`](https://hub.docker.com/r/dockersamples/simspace-authoring-kit) sandbox
-kit, which is resolved fresh on every `sbx env run` — so this repo authors
-against the *current* Simspace format however long ago you generated it. That's
-the reason they aren't committed here: vendored skills froze at generation time
-and never learned about features added since. Pin to a released version in
-`.sbxenv.yaml` if a workshop needs a fixed target.
-
-Either way, `docker compose` and `validate-lab` are pre-allowed (`.claude/`), a
-hook auto-validates the labs after every edit under `labs/`, and
-[`CLAUDE.md`](CLAUDE.md) loads [`AGENTS.md`](AGENTS.md) automatically.
+Uses the [simspace-authoring-kit](https://hub.docker.com/r/dockersamples/simspace-authoring-kit) from `.sbxenv.yaml`. See [AGENTS.md](./AGENTS.md).
 
 ## Learn more
 
-[`AGENTS.md`](AGENTS.md) orients you in this repo. For the format itself, the
-[Simspace specs](https://github.com/dockersamples/simspace/tree/main/spec) are
-authoritative: `simulator.yaml`, `labspace.yaml`, the catalog, and slide decks.
+- [Docker Sandboxes docs](https://docs.docker.com/ai/sandboxes/)
+- [Simspace specs](https://github.com/dockersamples/simspace/tree/main/spec)
+- [simspace-starter](https://github.com/dockersamples/simspace-starter)

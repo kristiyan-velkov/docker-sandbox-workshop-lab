@@ -1,0 +1,87 @@
+version: "2.0"
+
+metadata:
+  id: lab-06-customize-stack
+  title: "Lab 6 — Custom Kit"
+  summary: "Build and run your own mixin kit."
+
+state:
+  templateCopied: false
+  specEdited: false
+  validated: false
+  kitRunning: false
+
+defaults:
+  unmatched:
+    stderr: ["Error: that command isn't part of this lab yet."]
+    exit: 1
+
+scenarios:
+  - id: copy-template
+    completes: copy-template
+    when:
+      command: [cp, -r]
+      promptContains: ["kit-template", "my-workshop-kit"]
+    then:
+      state: { templateCopied: true }
+      output:
+        - "Copied kit-template/ → my-workshop-kit/"
+        - "Contents: spec.yaml, files/home/, files/workspace/"
+
+  - id: kit-validate
+    completes: kit-validate
+    when:
+      command: [sbx, kit, validate]
+      promptContains: ["my-workshop-kit"]
+      state: { templateCopied: true }
+    then:
+      state: { validated: true, specEdited: true }
+      output:
+        - "✓ schemaVersion"
+        - "✓ kind: mixin"
+        - "✓ network.allowedDomains"
+        - "✓ commands.startup"
+        - "Kit validation passed."
+
+  - id: kit-inspect
+    when:
+      command: [sbx, kit, inspect]
+      promptContains: ["my-workshop-kit"]
+    then:
+      output:
+        - "name: my-workshop-kit"
+        - "network.allowedDomains: [registry.npmjs.org, …]"
+        - "commands.startup: workshop-bootstrap.sh"
+
+  - id: kit-run-lab6
+    completes: kit-run
+    when:
+      command: [sbx, run, cursor, .]
+      args:
+        --kit: ../my-workshop-kit
+        --name: lab6-my-kit
+    then:
+      state: { kitRunning: true }
+      output:
+        - "Applying custom kit: my-workshop-kit"
+        - "Bootstrap: npm ci + dev server on :3000"
+        - "Sandbox ready."
+
+  - id: agent-skill
+    when:
+      agent: true
+      promptContains: ["SKILL.md", "kit rules"]
+    then:
+      output:
+        - "Read .claude/skills/my-workshop-kit/SKILL.md"
+        - "Your kit rules: team conventions, allowed domains, bootstrap behavior."
+
+  - id: sbx-rm-lab6
+    completes: cleanup
+    when:
+      command: [sbx, rm, lab6-my-kit]
+      args:
+        --force: { any: true }
+    then:
+      state: { kitRunning: false }
+      output: ["lab6-my-kit removed"]

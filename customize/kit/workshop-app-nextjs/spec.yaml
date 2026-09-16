@@ -1,0 +1,33 @@
+# workshop-app-nextjs — mixin kit
+# Spec: https://docs.docker.com/ai/sandboxes/customize/kit-reference/
+# Overview: https://docs.docker.com/ai/sandboxes/customize/kits/
+
+schemaVersion: "1"
+kind: mixin
+name: workshop-app-nextjs
+displayName: Next.js workshop-app
+description: >-
+  Workshop mixin — npm ci, Next.js dev server on :3000, network allow-list (Lab 5),
+  Cursor rules and Claude skill in the workspace.
+
+network:
+  allowedDomains:
+    - registry.npmjs.org
+    - dockerfrontend.com
+    - frontendworld.substack.com
+    - kristiyanvelkov.com
+    - leanpub.com
+  deniedDomains:
+    - google.com
+    - linkedin.com
+
+environment:
+  variables:
+    NEXT_TELEMETRY_DISABLED: "1"
+
+commands:
+  startup:
+    - command: [sh, /home/agent/.local/bin/workshop-bootstrap.sh]
+      user: "1000"
+      background: true
+      description: npm ci (if needed) and Next.js dev server on :3000

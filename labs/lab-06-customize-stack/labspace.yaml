@@ -1,0 +1,44 @@
+title: "Lab 6 — Build Your Custom Kit"
+description: "Copy the kit template, customize spec.yaml and skills, validate, and run your own mixin kit."
+
+catalog:
+  icon: construction
+  tags: ["kit", "customize", "final lab"]
+  estimatedMinutes: 25
+  order: 6
+
+simulator: simulator.yaml
+
+terminals:
+  - id: host
+    title: Host
+    icon: dns
+
+sections:
+  - title: Introduction
+    contentPath: 00-intro.md
+  - title: Copy template
+    contentPath: 01-copy.md
+    steps:
+      - id: copy-template
+        title: "Copy kit-template to my-workshop-kit"
+  - title: Customize spec
+    contentPath: 02-spec.md
+    steps:
+      - id: edit-spec
+        title: "Edit spec.yaml"
+  - title: Validate
+    contentPath: 03-validate.md
+    steps:
+      - id: kit-validate
+        title: "sbx kit validate passes"
+  - title: Run your kit
+    contentPath: 04-run.md
+    steps:
+      - id: kit-run
+        title: "Start sandbox with custom kit"
+  - title: Clean up
+    contentPath: 05-cleanup.md
+    steps:
+      - id: cleanup
+        title: "Remove sandbox"

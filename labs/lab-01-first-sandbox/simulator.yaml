@@ -1,0 +1,141 @@
+version: "2.0"
+
+metadata:
+  id: lab-01-first-sandbox
+  title: "Lab 1 — Your First Sandbox"
+  summary: "Install sbx, run Cursor in a microVM, and prove workspace isolation."
+
+state:
+  loggedIn: false
+  secretSet: false
+  sandboxRunning: false
+  helloCreated: false
+
+settings:
+  pace:
+    beat: 300
+    pull: 900
+
+defaults:
+  unmatched:
+    stderr: ["Error: that command isn't part of this lab yet."]
+    exit: 1
+  unmatchedAgent:
+    output:
+      - "Try the prompts in the left panel — this lab scripts specific agent tasks."
+
+scenarios:
+  - id: sbx-version
+    completes: sbx-version
+    when:
+      command: [sbx, version]
+    then:
+      output:
+        - "sbx version 0.39.0 (darwin/arm64)"
+        - "daemon: running"
+
+  - id: sbx-login
+    completes: sbx-login
+    when:
+      command: [sbx, login]
+    then:
+      state: { loggedIn: true }
+      output:
+        - "Opening browser for Docker sign-in…"
+        - "Logged in as kristiyan.velkov"
+
+  - id: secret-set
+    completes: secret-set
+    when:
+      command: [sbx, secret, set, -g, cursor]
+    then:
+      state: { secretSet: true }
+      output:
+        - "Secret stored for group: cursor"
+        - "Inside the VM, CURSOR_API_KEY will show as proxy-managed — never your raw key."
+
+  - id: secret-ls
+    when:
+      command: [sbx, secret, ls]
+    then:
+      output:
+        - "GROUP   NAME    SCOPE"
+        - "cursor  cursor  global"
+
+  - id: sbx-run
+    completes: sbx-run
+    when:
+      command: [sbx, run, cursor, .]
+      args:
+        --name: { any: true }
+    then:
+      state: { sandboxRunning: true }
+      output:
+        - "Creating sandbox 'my-sandbox' (agent: cursor)…"
+        - { text: "Syncing workspace/ into the microVM…", delay: pull }
+        - "Sandbox ready. Starting Cursor agent."
+      session:
+        prompt: "cursor> "
+        intro:
+          - "I'm Cursor, running inside a Docker Sandbox microVM."
+          - "Only the workspace/ folder is synced — ask me to create hello.txt."
+
+  - id: agent-hello
+    completes: hello-file
+    when:
+      agent: true
+      promptContains: ["hello.txt"]
+    then:
+      state: { helloCreated: true }
+      output:
+        - "Creating hello.txt in the workspace…"
+        - ""
+        - " $ cat hello.txt"
+        - " Hello from Docker Sandboxes!"
+        - ""
+        - "Done — the file is synced back to your host workspace/ folder."
+      files:
+        - path: workspace/hello.txt
+          content: "Hello from Docker Sandboxes!\n"
+
+  - id: agent-boundary
+    completes: boundary-test
+    when:
+      agent: true
+      promptContains: ["delete-me"]
+    then:
+      output:
+        - "Attempting to delete ../delete-me.txt …"
+        - ""
+        - " $ rm ../delete-me.txt"
+        - " rm: cannot remove '../delete-me.txt': Permission denied"
+        - ""
+        - "I cannot delete files outside the workspace mount. delete-me.txt remains on the host."
+
+  - id: sbx-ls-running
+    when:
+      command: [sbx, ls]
+      state: { sandboxRunning: true }
+    then:
+      output:
+        - "SANDBOX        AGENT   STATUS    PORTS   WORKSPACE"
+        - "my-sandbox     cursor  running           workspace/"
+
+  - id: sbx-rm
+    completes: cleanup
+    when:
+      command: [sbx, rm]
+      args:
+        --force: { any: true }
+    then:
+      state: { sandboxRunning: false }
+      output: ["my-sandbox removed"]
+
+  - id: sbx-ls-empty
+    when:
+      command: [sbx, ls]
+      state: { sandboxRunning: false }
+    then:
+      output:
+        - "SANDBOX   AGENT   STATUS   PORTS   WORKSPACE"
+        - "(no sandboxes)"

@@ -1,0 +1,97 @@
+version: "2.0"
+
+metadata:
+  id: lab-05-workshop-app
+  title: "Lab 5 — Workshop App Kit"
+  summary: "Pre-built kit bootstrap and network allow/deny demo."
+
+state:
+  kitRunning: false
+  devServerUp: false
+
+settings:
+  pace:
+    build: 1100
+
+defaults:
+  unmatched:
+    stderr: ["Error: that command isn't part of this lab yet."]
+    exit: 1
+
+scenarios:
+  - id: kit-run
+    completes: kit-run
+    when:
+      command: [sbx, run, cursor, .]
+      args:
+        --kit: ../customize/kit/workshop-app-nextjs
+        --name: lab5-kit
+    then:
+      state: { kitRunning: true, devServerUp: true }
+      output:
+        - "Applying kit: workshop-app-nextjs"
+        - { text: "Running workshop-bootstrap.sh (npm ci + dev server)…", delay: build }
+        - "Sandbox ready. Dev server on :3000"
+        - "Kit network: allow kristiyanvelkov.com, leanpub.com — deny google.com, linkedin.com"
+
+  - id: agent-allowed
+    completes: allowed-sites
+    when:
+      agent: true
+      promptContains: ["kristiyan", "leanpub", "research"]
+    then:
+      output:
+        - "Fetching https://kristiyanvelkov.com … HTTP 200"
+        - "Bio: Docker Captain, author, conference speaker."
+        - "Fetching https://leanpub.com … found Docker and Next.js publications."
+
+  - id: agent-denied
+    completes: denied-sites
+    when:
+      agent: true
+      promptContains: ["google", "linkedin"]
+    then:
+      output:
+        - " $ curl https://google.com"
+        - " Blocked by network policy (deniedDomains: google.com)"
+        - " $ curl https://linkedin.com"
+        - " Blocked by network policy (deniedDomains: linkedin.com)"
+
+  - id: policy-log-lab5
+    when:
+      command: [sbx, policy, log, lab5-kit]
+    then:
+      output:
+        - "kristiyanvelkov.com    ALLOWED"
+        - "leanpub.com            ALLOWED"
+        - "google.com             BLOCKED"
+        - "linkedin.com           BLOCKED"
+
+  - id: curl-dev-server
+    when:
+      command: [sbx, exec, lab5-kit]
+      promptContains: ["3000"]
+    then:
+      output: ["200"]
+
+  - id: agent-inspect-kit
+    completes: inspect-kit
+    when:
+      agent: true
+      promptContains: ["kit", "spec.yaml", "rules"]
+    then:
+      output:
+        - "Injected .cursor/rules/: cursor-agent.mdc, sandbox-workshop.mdc, …"
+        - "Injected .claude/skills/workshop-app/SKILL.md"
+        - "network.allowedDomains: registry.npmjs.org, kristiyanvelkov.com, leanpub.com, …"
+        - "commands.startup: workshop-bootstrap.sh → npm ci + npm run dev :3000"
+
+  - id: sbx-rm-lab5
+    completes: cleanup
+    when:
+      command: [sbx, rm, lab5-kit]
+      args:
+        --force: { any: true }
+    then:
+      state: { kitRunning: false, devServerUp: false }
+      output: ["lab5-kit removed"]

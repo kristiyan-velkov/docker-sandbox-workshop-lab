@@ -1,0 +1,49 @@
+title: "Lab 4 — Direct vs Clone Mode"
+description: "Compare direct workspace mounts with isolated Git clone mode on the monorepo."
+
+catalog:
+  icon: call_split
+  tags: ["git", "clone", "workflow"]
+  estimatedMinutes: 25
+  order: 4
+
+simulator: simulator.yaml
+
+terminals:
+  - id: host
+    title: Host
+    icon: dns
+
+files:
+  workshop-app/src/components/home-hero.tsx: |
+    export function HomeHero() {
+      return <h1>Docker Sandboxes Workshop</h1>;
+    }
+
+sections:
+  - title: Introduction
+    contentPath: 00-intro.md
+  - title: Direct mode
+    contentPath: 01-direct.md
+    steps:
+      - id: direct-run
+        title: "Start direct sandbox"
+      - id: direct-edit
+        title: "Hero edit syncs to host"
+  - title: Clone mode
+    contentPath: 02-clone.md
+    steps:
+      - id: clone-run
+        title: "Start clone sandbox"
+      - id: clone-commit
+        title: "Agent commits on branch"
+  - title: Fetch and merge
+    contentPath: 03-fetch.md
+    steps:
+      - id: fetch-merge
+        title: "Review on host and merge"
+  - title: Clean up
+    contentPath: 04-cleanup.md
+    steps:
+      - id: cleanup
+        title: "Remove sandboxes"

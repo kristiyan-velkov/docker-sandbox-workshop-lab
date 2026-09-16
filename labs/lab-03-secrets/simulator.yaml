@@ -1,0 +1,86 @@
+version: "2.0"
+
+metadata:
+  id: lab-03-secrets
+  title: "Lab 3 — Secrets"
+  summary: "Credential proxy injection and exfiltration prevention."
+
+state:
+  githubSecretSet: false
+  sandboxRunning: false
+
+defaults:
+  unmatched:
+    stderr: ["Error: that command isn't part of this lab yet."]
+    exit: 1
+
+scenarios:
+  - id: secret-github
+    completes: secret-github
+    when:
+      command: [sbx, secret, set, -g, github]
+    then:
+      state: { githubSecretSet: true }
+      output:
+        - "Secret stored for group: github"
+        - "The VM will see GH_TOKEN=gho_sbxproxymanaged… — not your real token."
+
+  - id: sbx-run-lab3
+    when:
+      command: [sbx, run, cursor, .]
+      args:
+        --name: lab3
+    then:
+      state: { sandboxRunning: true }
+      output:
+        - "Creating sandbox 'lab3' with GitHub credential proxy…"
+        - "Sandbox ready."
+
+  - id: exec-sentinel
+    completes: check-sentinel
+    when:
+      command: [sbx, exec, lab3]
+      prompt: 'echo "GH_TOKEN=$GH_TOKEN"'
+    then:
+      output:
+        - "GH_TOKEN=gho_sbxproxymanaged000000000000000000000"
+
+  - id: exec-api
+    completes: api-200
+    when:
+      command: [sbx, exec, lab3]
+      promptContains: ["api.github.com"]
+    then:
+      output:
+        - "sentinel OK"
+        - "HTTP 200"
+        - "user: kristiyan-velkov"
+
+  - id: exec-exfil
+    completes: exfil-blocked
+    when:
+      command: [sbx, exec, lab3]
+      promptContains: ["evil.example.com"]
+    then:
+      output:
+        - "curl: (7) Failed to connect — blocked by network policy"
+        - "The sentinel token never reached evil.example.com."
+
+  - id: secret-rm
+    when:
+      command: [sbx, secret, rm, -g, github]
+      args:
+        --force: { any: true }
+    then:
+      state: { githubSecretSet: false }
+      output: ["Secret removed: github (global)"]
+
+  - id: sbx-rm-lab3
+    completes: cleanup
+    when:
+      command: [sbx, rm, lab3]
+      args:
+        --force: { any: true }
+    then:
+      state: { sandboxRunning: false }
+      output: ["lab3 removed"]

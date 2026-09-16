@@ -1,0 +1,4 @@
+services:
+  labspace:
+    environment:
+      CONTENT_PATH: ${CONTENT_PATH:-.}

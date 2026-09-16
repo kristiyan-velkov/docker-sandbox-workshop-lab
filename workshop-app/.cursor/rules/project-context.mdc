@@ -1,0 +1,31 @@
+---
+description: workshop-app routes, key files, and dev commands
+alwaysApply: true
+---
+
+# workshop-app project context
+
+**CWD:** workspace root (`workshop-app/`)
+
+## Key files
+
+| Path | Purpose |
+|------|---------|
+| `src/lib/workshop-data.ts` | Lab steps, agenda, hints — edit workshop copy here |
+| `src/app/page.tsx` | Landing page |
+| `src/app/learn/` | YOLO, security, commands |
+| `src/components/home-hero.tsx` | Hero section |
+| `src/components/lab-card.tsx` | Lab cards |
+| `src/app/globals.css` | Apple design tokens |
+
+## Dev commands
+
+```bash
+npm run dev      # :3000 — kit starts this in background when using --kit
+npm run build    # required gate before finishing
+npm run lint
+```
+
+## Env
+
+Copy `.env.sandbox.example` → `.env.local` on the **host** before `sbx run`. Only `NEXT_PUBLIC_PLATFORM_URL` is needed for sandbox demos.

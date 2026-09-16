@@ -8,3 +8,11 @@ labs.json
 # Personal overlay for .sbxenv.yaml — machine-specific sandbox settings, passed
 # as `sbx env run .sbxenv.yaml local.sbxenv.yaml`.
 local.sbxenv.yaml
+
+# workshop-app
+workshop-app/node_modules/
+workshop-app/.next/
+workshop-app/.env.local
+
+# attendee kit copies
+my-workshop-kit/

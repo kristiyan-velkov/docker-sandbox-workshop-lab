@@ -1,0 +1,51 @@
+title: "Lab 1 — Your First Sandbox"
+description: "Install sbx, store a Cursor secret, run your first agent, and test workspace boundaries."
+
+catalog:
+  icon: rocket_launch
+  tags: ["sbx", "getting started"]
+  estimatedMinutes: 25
+  order: 1
+
+simulator: simulator.yaml
+
+terminals:
+  - id: host
+    title: Host
+    icon: dns
+
+files:
+  delete-me.txt: |
+    This file lives OUTSIDE the synced workspace.
+    The agent should NOT be able to delete it.
+  workspace/.keep: ""
+
+sections:
+  - title: Introduction
+    contentPath: 00-intro.md
+  - title: Install and sign in
+    contentPath: 01-install.md
+    steps:
+      - id: sbx-version
+        title: "Check sbx version"
+      - id: sbx-login
+        title: "Sign in with sbx login"
+  - title: Secrets and first run
+    contentPath: 02-run.md
+    steps:
+      - id: secret-set
+        title: "Store Cursor API key"
+      - id: sbx-run
+        title: "Start first sandbox"
+  - title: Workspace boundary
+    contentPath: 03-boundary.md
+    steps:
+      - id: hello-file
+        title: "Create hello.txt in workspace"
+      - id: boundary-test
+        title: "Confirm delete-me.txt is protected"
+  - title: Clean up
+    contentPath: 04-cleanup.md
+    steps:
+      - id: cleanup
+        title: "Remove sandbox"

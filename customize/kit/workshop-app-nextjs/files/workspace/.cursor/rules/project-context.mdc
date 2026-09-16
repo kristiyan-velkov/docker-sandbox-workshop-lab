@@ -1,0 +1,30 @@
+---
+description: workshop-app routes, key files, and dev commands
+alwaysApply: true
+---
+
+# workshop-app project context
+
+**CWD:** workspace root (`workshop-app/`)
+
+## Key files
+
+| Path | Purpose |
+|------|---------|
+| `src/lib/workshop-data.ts` | Lab steps, agenda, hints — edit workshop copy here |
+| `src/lib/site-config.ts` | Platform URL default |
+| `src/app/page.tsx` | Playground landing |
+| `src/components/home-hero.tsx` | Hero section |
+| `src/app/globals.css` | Apple design tokens |
+
+## Dev commands
+
+```bash
+npm run dev      # :3000 — kit starts this in background when using --kit
+npm run build    # required gate before finishing
+npm run lint
+```
+
+## Env
+
+Copy `.env.sandbox.example` → `.env.local` on the **host** before `sbx run`. Platform default: https://nextjs-26f1-3000.prg1.zerops.app

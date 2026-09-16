@@ -1,0 +1,44 @@
+title: "Lab 3 — Secrets & Credential Proxy"
+description: "Inject GitHub tokens via the host proxy — sentinel values never leave approved destinations."
+
+catalog:
+  icon: key
+  tags: ["secrets", "credentials", "github"]
+  estimatedMinutes: 20
+  order: 3
+
+simulator: simulator.yaml
+
+terminals:
+  - id: host
+    title: Host
+    icon: dns
+
+sections:
+  - title: Introduction
+    contentPath: 00-intro.md
+  - title: Store GitHub token
+    contentPath: 01-store.md
+    steps:
+      - id: secret-github
+        title: "Store GitHub secret"
+  - title: Sentinel value
+    contentPath: 02-sentinel.md
+    steps:
+      - id: check-sentinel
+        title: "Verify GH_TOKEN sentinel"
+  - title: Live API call
+    contentPath: 03-api.md
+    steps:
+      - id: api-200
+        title: "GitHub API returns 200"
+  - title: Exfiltration blocked
+    contentPath: 04-exfil.md
+    steps:
+      - id: exfil-blocked
+        title: "evil.example.com blocked"
+  - title: Clean up
+    contentPath: 05-cleanup.md
+    steps:
+      - id: cleanup
+        title: "Remove sandbox and secret"

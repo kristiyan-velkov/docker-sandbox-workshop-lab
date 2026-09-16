@@ -1,0 +1,115 @@
+version: "2.0"
+
+metadata:
+  id: lab-04-clone-workflow
+  title: "Lab 4 — Clone Workflow"
+  summary: "Direct vs clone Git workflows."
+
+state:
+  directRunning: false
+  cloneRunning: false
+  directEdited: false
+  cloneCommitted: false
+  hostMainClean: true
+
+defaults:
+  unmatched:
+    stderr: ["Error: that command isn't part of this lab yet."]
+    exit: 1
+
+scenarios:
+  - id: direct-run
+    completes: direct-run
+    when:
+      command: [sbx, run, cursor, workshop-app/]
+      args:
+        --name: lab4-direct
+    then:
+      state: { directRunning: true }
+      output:
+        - "Direct mode: mounting workshop-app/ read-write from host."
+        - "Agent edits appear on the host immediately."
+
+  - id: agent-direct-edit
+    completes: direct-edit
+    when:
+      agent: true
+      promptContains: ["hero", "home-hero"]
+    then:
+      state: { directEdited: true }
+      output:
+        - "Updated src/components/home-hero.tsx — tagline now mentions Docker Sandboxes."
+        - "Change is already visible on your host (no git fetch needed)."
+      files:
+        - replace: workshop-app/src/components/home-hero.tsx
+          find: "Docker Sandboxes Workshop"
+          with: "Docker Sandboxes Workshop — run agents safely in microVMs"
+
+  - id: direct-rm
+    when:
+      command: [sbx, rm, lab4-direct]
+      args:
+        --force: { any: true }
+    then:
+      state: { directRunning: false }
+      output: ["lab4-direct removed"]
+
+  - id: clone-run
+    completes: clone-run
+    when:
+      command: [sbx, run, --clone, cursor, .]
+      args:
+        --name: lab4-clone
+    then:
+      state: { cloneRunning: true, hostMainClean: true }
+      output:
+        - "Clone mode: private Git clone inside the VM."
+        - "Host main stays read-only. Remote 'sandbox-lab4-clone' added on host."
+
+  - id: agent-clone-commit
+    completes: clone-commit
+    when:
+      agent: true
+      promptContains: ["feat/lab4-test", "clone mode"]
+    then:
+      state: { cloneCommitted: true }
+      output:
+        - " $ git checkout -b feat/lab4-test"
+        - " $ git commit -m 'docs: clone mode test'"
+        - "Committed on feat/lab4-test inside the VM clone."
+        - "Host git status on main: clean"
+
+  - id: git-fetch
+    completes: fetch-merge
+    when:
+      command: [git, fetch, sandbox-lab4-clone]
+    then:
+      output:
+        - "From sandbox-lab4-clone"
+        - " * [new branch]      feat/lab4-test -> sandbox-lab4-clone/feat/lab4-test"
+
+  - id: git-log
+    when:
+      command: [git, log, sandbox-lab4-clone/feat/lab4-test]
+    then:
+      output:
+        - "a1b2c3d docs: clone mode test"
+        - "e4f5g6h [feat] init project"
+
+  - id: git-status-clean
+    when:
+      command: [git, status]
+    then:
+      output:
+        - "On branch main"
+        - "nothing to commit, working tree clean"
+
+  - id: clone-rm
+    completes: cleanup
+    when:
+      command: [sbx, rm, lab4-clone]
+      args:
+        --force: { any: true }
+    then:
+      state: { cloneRunning: false }
+      output: ["lab4-clone removed"]
