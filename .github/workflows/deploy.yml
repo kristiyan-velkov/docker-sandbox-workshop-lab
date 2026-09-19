@@ -58,23 +58,15 @@ jobs:
     steps:
       - name: Check GitHub Pages is enabled
         id: check
-        uses: actions/github-script@60a0d83039c673a2365e4dcb4b0e432b8b7cf8dc # v7.0.1
-        with:
-          script: |
-            try {
-              await github.rest.repos.getPages({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-              });
-              core.setOutput("available", "true");
-            } catch (error) {
-              core.notice(
-                "GitHub Pages is not enabled for this repository. " +
-                  "Settings → Pages → Build and deployment → Source: GitHub Actions. " +
-                  "Private repos need a GitHub plan that includes Pages."
-              );
-              core.setOutput("available", "false");
-            }
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/${{ github.repository }}/pages" >/dev/null 2>&1; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::GitHub Pages is not enabled for this repository. Enable it under Settings → Pages → Source: GitHub Actions. Private repos need a plan that includes Pages."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
 
   deploy:
     needs: [build, check-pages]
