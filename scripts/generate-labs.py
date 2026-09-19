@@ -46,10 +46,10 @@ sections:
   - title: Install and sign in
     contentPath: 01-install.md
     steps:
+      - id: sbx-install
+        title: "Install sbx and sign in to Docker"
       - id: sbx-version
         title: "Check sbx version"
-      - id: sbx-login
-        title: "Sign in with sbx login"
   - title: Secrets and first run
     contentPath: 02-run.md
     steps:
@@ -101,13 +101,63 @@ defaults:
       - "Try the prompts in the left panel — this lab scripts specific agent tasks."
 
 scenarios:
+  - id: brew-install-login
+    completes: sbx-install
+    when:
+      command: [brew, install, docker/tap/sbx, sbx, login]
+    then:
+      state: { loggedIn: true }
+      output:
+        - "==> Fetching docker/tap/sbx"
+        - "==> Installing sbx from docker/tap"
+        - "🍺  /opt/homebrew/Cellar/sbx/0.43.0: sbx installed"
+        - ""
+        - "Opening browser for Docker sign-in…"
+        - "Logged in as kristiyan.velkov"
+
+  - id: brew-install-block
+    completes: sbx-install
+    when:
+      command: [brew, trust, docker/tap, brew, install]
+    then:
+      state: { loggedIn: true }
+      output:
+        - "✔ docker/tap is now a trusted tap"
+        - "==> Fetching docker/tap/sbx"
+        - "==> Installing sbx from docker/tap"
+        - "🍺  /opt/homebrew/Cellar/sbx/0.43.0: sbx installed"
+        - ""
+        - "Opening browser for Docker sign-in…"
+        - "Logged in as kristiyan.velkov"
+
+  - id: brew-trust
+    when:
+      command: [brew, trust]
+    then:
+      output:
+        - "✔ docker/tap is now a trusted tap"
+
+  - id: brew-install
+    completes: sbx-install
+    when:
+      command: [brew, install]
+    then:
+      state: { loggedIn: true }
+      output:
+        - "==> Fetching docker/tap/sbx"
+        - "==> Installing sbx from docker/tap"
+        - "🍺  /opt/homebrew/Cellar/sbx/0.43.0: sbx installed"
+        - ""
+        - "Opening browser for Docker sign-in…"
+        - "Logged in as kristiyan.velkov"
+
   - id: sbx-version
     completes: sbx-version
     when:
       command: [sbx, version]
     then:
       output:
-        - "sbx version 0.39.0 (darwin/arm64)"
+        - "sbx version 0.43.0 (darwin/arm64)"
         - "daemon: running"
 
   - id: sbx-login
@@ -115,19 +165,40 @@ scenarios:
     when:
       command: [sbx, login]
     then:
-      state: { loggedIn: true }
       output:
-        - "Opening browser for Docker sign-in…"
-        - "Logged in as kristiyan.velkov"
+        - "By logging in, you agree to our Subscription Service Agreement. For more details, see https://www.docker.com/legal/docker-subscription-service-agreement/"
+        - ""
+        - "Waiting for authentication..."
+      input:
+        prompt: "Your Docker Hub username: "
+        key: username
+        then:
+          output:
+            - "Signed in as {{ input.username }}."
+          state:
+            loggedIn: true
+            dockerUsername: "{{ input.username }}"
+
+  - id: secret-set-ls
+    completes: secret-set
+    when:
+      command: [sbx, secret, set, cursor, sbx, secret, ls]
+    then:
+      state: { secretSet: true }
+      output:
+        - "Secret stored: cursor"
+        - "Inside the VM, CURSOR_API_KEY will show as proxy-managed — never your raw key."
+        - "GROUP   NAME    SCOPE"
+        - "cursor  cursor  global"
 
   - id: secret-set
     completes: secret-set
     when:
-      command: [sbx, secret, set, -g, cursor]
+      command: [sbx, secret, set, cursor]
     then:
       state: { secretSet: true }
       output:
-        - "Secret stored for group: cursor"
+        - "Secret stored: cursor"
         - "Inside the VM, CURSOR_API_KEY will show as proxy-managed — never your raw key."
 
   - id: secret-ls
@@ -202,10 +273,13 @@ scenarios:
     when:
       command: [sbx, rm]
       args:
+        0: my-sandbox
         --force: { any: true }
     then:
       state: { sandboxRunning: false }
-      output: ["my-sandbox removed"]
+      output:
+        - "Deleting sandbox my-sandbox..."
+        - "Sandbox 'my-sandbox' removed"
 
   - id: sbx-ls-empty
     when:
@@ -230,8 +304,6 @@ In this lab you will:
 2. Store your Cursor API key as a host secret
 3. Run `sbx run cursor` and create a file in the workspace
 4. Prove the agent **cannot** modify files outside the workspace mount
-
-> **Simulated mode:** commands run in a browser terminal with scripted output. For real `sbx`, use the **Live workshop** track (`bash start-labspace.sh`).
 """,
     )
     write(
@@ -239,13 +311,33 @@ In this lab you will:
         """
 # Install and sign in
 
+Requires macOS Sonoma 14+ on Apple silicon. You don't need Docker Desktop.
+
+```bash terminal-id=host
+brew trust docker/tap
+```
+
+```bash terminal-id=host
+brew install docker/tap/sbx
+sbx login
+```
+
+## Other machines
+
+| Platform | Install | Guide |
+|----------|---------|-------|
+| Windows 11 | `winget install -h Docker.sbx` | [Install on Windows](https://docs.docker.com/ai/sandboxes/install/#install-on-windows) |
+| Ubuntu 24.04+ | add Docker's apt repo, then `sudo apt install docker-sbx` | [Install on Ubuntu](https://docs.docker.com/ai/sandboxes/install/#install-on-ubuntu) |
+
+Full prerequisites, packages, and manual artifacts: [Install Docker Sandboxes](https://docs.docker.com/ai/sandboxes/install/).
+
 Check that `sbx` is installed:
 
 ```bash terminal-id=host
 sbx version
 ```
 
-Sign in to Docker:
+If sign-in did not open, run:
 
 ```bash terminal-id=host
 sbx login
@@ -260,7 +352,10 @@ sbx login
 Store your Cursor API key on the **host** — never in a repo file:
 
 ```bash terminal-id=host
-sbx secret set -g cursor
+sbx secret set cursor
+```
+
+```bash terminal-id=host
 sbx secret ls
 ```
 
@@ -711,11 +806,11 @@ scenarios:
   - id: secret-github
     completes: secret-github
     when:
-      command: [sbx, secret, set, -g, github]
+      command: [sbx, secret, set, github]
     then:
       state: { githubSecretSet: true }
       output:
-        - "Secret stored for group: github"
+        - "Secret stored: github"
         - "The VM will see GH_TOKEN=gho_sbxproxymanaged… — not your real token."
 
   - id: sbx-run-lab3
@@ -761,7 +856,7 @@ scenarios:
 
   - id: secret-rm
     when:
-      command: [sbx, secret, rm, -g, github]
+      command: [sbx, secret, rm, github]
       args:
         --force: { any: true }
     then:
@@ -787,7 +882,7 @@ scenarios:
 
 API keys are stored on the **host** and injected into outbound HTTP headers by a proxy. Inside the VM, credentials appear as **sentinel values** — shaped like tokens but useless if exfiltrated.
 
-You still need `sbx secret set -g cursor` from Lab 1 for the agent.
+You still need `sbx secret set cursor` from Lab 1 for the agent.
 """,
         ),
         (
@@ -796,7 +891,7 @@ You still need `sbx secret set -g cursor` from Lab 1 for the agent.
 # Store GitHub token
 
 ```bash terminal-id=host
-echo "gho_simulated_token" | sbx secret set -g github
+sbx secret set github --command 'gh auth token'
 sbx secret ls
 sbx run cursor . --name lab3
 ```
@@ -849,7 +944,7 @@ Expected: blocked — network policy prevents sending the sentinel to unapproved
 
 ```bash terminal-id=host
 sbx rm lab3 --force
-sbx secret rm -g github --force
+sbx secret rm github --force
 ```
 
 → [Credentials docs](https://docs.docker.com/ai/sandboxes/security/credentials/)
@@ -889,6 +984,13 @@ files:
 sections:
   - title: Introduction
     contentPath: 00-intro.md
+  - title: Get the playground
+    contentPath: 00-setup.md
+    steps:
+      - id: clone-app
+        title: "Clone workshop-app"
+      - id: npm-install
+        title: "Install npm packages"
   - title: Direct mode
     contentPath: 01-direct.md
     steps:
@@ -938,6 +1040,26 @@ defaults:
     exit: 1
 
 scenarios:
+  - id: clone-app
+    completes: clone-app
+    when:
+      command: [git, clone]
+    then:
+      output:
+        - "Cloning into 'docker-sandbox-workshop'..."
+        - "Receiving objects: 100%"
+        - "Resolving deltas: 100%"
+        - "Done."
+
+  - id: npm-install
+    completes: npm-install
+    when:
+      command: [npm, install]
+    then:
+      output:
+        - "added 312 packages, and audited 313 packages in 8s"
+        - "found 0 vulnerabilities"
+
   - id: direct-run
     completes: direct-run
     when:
@@ -1046,7 +1168,26 @@ scenarios:
 | **Direct** | `sbx run cursor workshop-app/` | Edits sync immediately |
 | **Clone** | `sbx run --clone cursor .` | Host stays clean; fetch branch from sandbox remote |
 
-Both modes use the monorepo at `docker-sandbox-workshop-lab/`.
+Both modes use the playground repo [docker-sandbox-workshop](https://github.com/kristiyan-velkov/docker-sandbox-workshop) — clone it in the next step.
+""",
+        ),
+        (
+            "00-setup.md",
+            """
+# Get the playground
+
+Labs 4–6 use [workshop-app](https://github.com/kristiyan-velkov/docker-sandbox-workshop) — it is not in this repo. Clone it and install packages:
+
+```bash terminal-id=host
+git clone https://github.com/kristiyan-velkov/docker-sandbox-workshop.git
+```
+
+```bash terminal-id=host
+cd docker-sandbox-workshop/workshop-app
+npm install
+```
+
+Repo: [github.com/kristiyan-velkov/docker-sandbox-workshop](https://github.com/kristiyan-velkov/docker-sandbox-workshop)
 """,
         ),
         (
@@ -1070,7 +1211,7 @@ The edit appears on the host immediately — open :filelink[home-hero.tsx]{path=
             """
 # Clone mode
 
-From the **repo root** (not `workshop-app/`):
+From the **docker-sandbox-workshop** repo root (not `workshop-app/`):
 
 ```bash terminal-id=host
 sbx run --clone cursor . --name lab4-clone
@@ -1278,8 +1419,18 @@ Lab 5 uses the pre-built **`workshop-app-nextjs`** kit from `customize/kit/`. Th
 - Injects Cursor rules and Claude skills
 - Sets network allow/deny lists
 
+Use the playground from Lab 4. If you do not have it yet:
+
 ```bash
-cd workshop-app
+git clone https://github.com/kristiyan-velkov/docker-sandbox-workshop.git
+cd docker-sandbox-workshop/workshop-app
+npm install
+```
+
+Then:
+
+```bash
+cd docker-sandbox-workshop/workshop-app
 cp .env.sandbox.example .env.local
 ```
 """,
@@ -1290,7 +1441,7 @@ cp .env.sandbox.example .env.local
 # Run with kit
 
 ```bash terminal-id=host
-cd workshop-app
+cd docker-sandbox-workshop/workshop-app
 sbx run cursor . --kit ../customize/kit/workshop-app-nextjs --name lab5-kit
 ```
 
@@ -1429,12 +1580,19 @@ scenarios:
   - id: copy-template
     completes: copy-template
     when:
-      command: [cp, -r]
-      promptContains: ["kit-template", "my-workshop-kit"]
+      command: [cp]
+      args:
+        r:
+          oneOf:
+            - "lab-06-customize-stack/kit-template"
+            - "./lab-06-customize-stack/kit-template"
+            - "lab-06-customize-stack/kit-template/"
+        0:
+          oneOf: ["my-workshop-kit", "./my-workshop-kit"]
     then:
       state: { templateCopied: true }
       output:
-        - "Copied kit-template/ → my-workshop-kit/"
+        - "Copied lab-06-customize-stack/kit-template/ → my-workshop-kit/"
         - "Contents: spec.yaml, files/home/, files/workspace/"
 
   - id: kit-validate
@@ -1448,8 +1606,8 @@ scenarios:
       output:
         - "✓ schemaVersion"
         - "✓ kind: mixin"
-        - "✓ network.allowedDomains"
-        - "✓ commands.startup"
+        - "✓ permissions.network.allow"
+        - "✓ setup.startup"
         - "Kit validation passed."
 
   - id: kit-inspect
@@ -1459,8 +1617,8 @@ scenarios:
     then:
       output:
         - "name: my-workshop-kit"
-        - "network.allowedDomains: [registry.npmjs.org, …]"
-        - "commands.startup: workshop-bootstrap.sh"
+        - "permissions.network.allow: [registry.npmjs.org, …]"
+        - "setup.startup: workshop-bootstrap.sh"
 
   - id: kit-run-lab6
     completes: kit-run
@@ -1502,7 +1660,7 @@ scenarios:
             """
 # Lab 6 — Build Your Custom Kit
 
-Final lab — create your own **mixin kit** from the template in `kit-template/`.
+Final lab — create your own **mixin kit** from the template in `kit-template/`. Use the [playground clone](https://github.com/kristiyan-velkov/docker-sandbox-workshop) from Lab 4.
 
 Never edit `kit-template/` in place — copy it first:
 
@@ -1532,8 +1690,8 @@ Edit `my-workshop-kit/spec.yaml`:
 | Block | What to set |
 |-------|-------------|
 | `name` / `displayName` | Your kit id |
-| `network.allowedDomains` | Domains your team needs |
-| `network.deniedDomains` | Domains to block |
+| `permissions.network.allow` | Domains your team needs |
+| `permissions.network.deny` | Domains to block |
 | `files/workspace/` | Cursor rules, Claude skills |
 
 Bootstrap script: `files/home/.local/bin/workshop-bootstrap.sh`
@@ -1558,7 +1716,7 @@ Fix every error before running.
 # Run your kit
 
 ```bash terminal-id=host
-cd workshop-app
+cd docker-sandbox-workshop/workshop-app
 cp .env.sandbox.example .env.local
 sbx run cursor . --kit ../my-workshop-kit --name lab6-my-kit
 ```
@@ -1630,7 +1788,7 @@ Welcome! This track runs **real `sbx` commands** on your machine in the terminal
 
 - [sbx CLI](https://docs.docker.com/ai/sandboxes/get-started/) installed
 - [ttyd](https://github.com/tsl0922/ttyd): `brew install ttyd`
-- Cursor API key stored: `sbx secret set -g cursor`
+- Cursor API key stored: `sbx secret set cursor`
 
 ## Quick start
 
@@ -1659,40 +1817,17 @@ services:
       CONTENT_PATH: ${CONTENT_PATH:-.}
 """,
     )
-    guides = {
-        "lab-01-first-sandbox.md": Path(
-            "/Users/kristiyanvelkov/Kristiyan/Projects/Private/opensource/docker/docker-sandbox-workshop/lab-01-first-sandbox/GUIDE.md"
-        ).read_text(),
-        "lab-02-network-policy.md": Path(
-            "/Users/kristiyanvelkov/Kristiyan/Projects/Private/opensource/docker/docker-sandbox-workshop/lab-02-network-policy/GUIDE.md"
-        ).read_text(),
-        "lab-03-secrets.md": Path(
-            "/Users/kristiyanvelkov/Kristiyan/Projects/Private/opensource/docker/docker-sandbox-workshop/lab-03-secrets/GUIDE.md"
-        ).read_text(),
-        "lab-04-clone-workflow.md": Path(
-            "/Users/kristiyanvelkov/Kristiyan/Projects/Private/opensource/docker/docker-sandbox-workshop/lab-04-clone-workflow/GUIDE.md"
-        ).read_text(),
-        "lab-05-workshop-app.md": Path(
-            "/Users/kristiyanvelkov/Kristiyan/Projects/Private/opensource/docker/docker-sandbox-workshop/lab-05-workshop-app/GUIDE.md"
-        ).read_text(),
-        "lab-06-customize-stack.md": Path(
-            "/Users/kristiyanvelkov/Kristiyan/Projects/Private/opensource/docker/docker-sandbox-workshop/lab-06-customize-stack/GUIDE.md"
-        ).read_text(),
-    }
-    for name, content in guides.items():
-        write(DOCS / name, content)
+    # Live-track guides in docs/ are authored in place (official sbx 0.43.0
+    # syntax, one command per fence). Do not overwrite them from workshop GUIDEs.
 
 
 def main() -> None:
-    lab01()
-    lab02()
-    lab03()
-    lab04()
-    lab05()
-    lab06()
+    # Simspace labs in labs/ are authored in place (one command per fence,
+    # official sbx 0.43.0 syntax). Running the lab*() writers would overwrite
+    # that work. Refresh only the Labspace manifest and welcome page.
     labspace_docs()
-    print(f"Generated 6 Simspace labs in {LABS}")
-    print(f"Generated Labspace docs in {DOCS}")
+    print(f"Labspace manifest refreshed. Simspace labs are authored in {LABS}")
+    print(f"Labspace docs are authored in {DOCS}")
 
 
 if __name__ == "__main__":

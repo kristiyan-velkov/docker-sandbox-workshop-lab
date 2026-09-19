@@ -3,7 +3,7 @@ description: "Copy the kit template, customize spec.yaml and skills, validate, a
 
 catalog:
   icon: construction
-  tags: ["kit", "customize", "final lab"]
+  tags: ["github", "kit", "customize", "final lab"]
   estimatedMinutes: 25
   order: 6
 
@@ -17,28 +17,33 @@ terminals:
 sections:
   - title: Introduction
     contentPath: 00-intro.md
-  - title: Copy template
+  - title: "Step 1 · Copy kit template"
     contentPath: 01-copy.md
     steps:
       - id: copy-template
         title: "Copy kit-template to my-workshop-kit"
-  - title: Customize spec
+  - title: "Step 2 · Fill in spec.yaml"
     contentPath: 02-spec.md
     steps:
-      - id: edit-spec
-        title: "Edit spec.yaml"
-  - title: Validate
+      - id: view-spec
+        title: "Review spec.yaml"
+  - title: "Step 3 · Customize & validate"
     contentPath: 03-validate.md
     steps:
       - id: kit-validate
         title: "sbx kit validate passes"
-  - title: Run your kit
+  - title: "Step 4 · Run your kit"
     contentPath: 04-run.md
     steps:
       - id: kit-run
         title: "Start sandbox with custom kit"
-  - title: Clean up
-    contentPath: 05-cleanup.md
+  - title: "Step 5 · Verify"
+    contentPath: 05-verify.md
+    steps:
+      - id: verify-kit
+        title: "HTTP 200 and kit skill present"
+  - title: "Step 6 · Clean up"
+    contentPath: 06-cleanup.md
     steps:
       - id: cleanup
         title: "Remove sandbox"

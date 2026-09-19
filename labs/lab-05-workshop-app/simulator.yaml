@@ -6,6 +6,7 @@ metadata:
   summary: "Pre-built kit bootstrap and network allow/deny demo."
 
 state:
+  cwd: "~"
   kitRunning: false
   devServerUp: false
 
@@ -19,6 +20,109 @@ defaults:
     exit: 1
 
 scenarios:
+  - id: clone-app
+    when:
+      command: [git, clone]
+    then:
+      output:
+        - "Cloning into 'docker-sandbox-workshop'..."
+        - "Receiving objects: 100%"
+        - "Done."
+
+  - id: cd-parent-from-workshop-app
+    when:
+      command: [cd]
+      prompt: ..
+      state:
+        cwd: docker-sandbox-workshop/workshop-app
+    then:
+      state:
+        cwd: docker-sandbox-workshop
+      output: []
+
+  - id: cd-parent-from-workshop-root
+    when:
+      command: [cd]
+      prompt: ..
+      state:
+        cwd: docker-sandbox-workshop
+    then:
+      state:
+        cwd: "~"
+      output: []
+
+  - id: cd-workshop-app
+    when:
+      command: [cd]
+      prompt: docker-sandbox-workshop/workshop-app
+    then:
+      state:
+        cwd: docker-sandbox-workshop/workshop-app
+      output: []
+
+  - id: cd-workshop-root
+    when:
+      command: [cd]
+      prompt: docker-sandbox-workshop
+    then:
+      state:
+        cwd: docker-sandbox-workshop
+      output: []
+
+  - id: cd-workshop-app-relative
+    when:
+      command: [cd]
+      prompt: workshop-app
+      state:
+        cwd: docker-sandbox-workshop
+    then:
+      state:
+        cwd: docker-sandbox-workshop/workshop-app
+      output: []
+
+  - id: cd-home-tilde
+    when:
+      command: [cd]
+      prompt: "~"
+    then:
+      state:
+        cwd: "~"
+      output: []
+
+  - id: cd-home
+    when:
+      command: [cd]
+      prompt: ""
+    then:
+      state:
+        cwd: "~"
+      output: []
+
+  - id: cd-generic
+    when:
+      command: [cd]
+      args:
+        0: { any: true }
+    then:
+      state:
+        cwd: "{{ args.0 }}"
+      output: []
+
+  - id: npm-install
+    when:
+      command: [npm, install]
+    then:
+      output:
+        - "added 312 packages, and audited 313 packages in 8s"
+        - "found 0 vulnerabilities"
+
+  - id: cp-env
+    when:
+      command: [cp]
+    then:
+      output:
+        - "copied .env.sandbox.example → .env.local"
+
   - id: kit-run
     completes: kit-run
     when:
@@ -29,62 +133,111 @@ scenarios:
     then:
       state: { kitRunning: true, devServerUp: true }
       output:
-        - "Applying kit: workshop-app-nextjs"
-        - { text: "Running workshop-bootstrap.sh (npm ci + dev server)…", delay: build }
-        - "Sandbox ready. Dev server on :3000"
-        - "Kit network: allow kristiyanvelkov.com, leanpub.com — deny google.com, linkedin.com"
+        - "Creating sandbox lab5-kit..."
+        - { text: "Starting sandbox lab5-kit...", delay: build }
+        - "Sandbox lab5-kit started successfully"
+        - ""
+        - "AI: waiting for some question"
 
-  - id: agent-allowed
+  - id: prompt-allowed
     completes: allowed-sites
     when:
-      agent: true
-      promptContains: ["kristiyan", "leanpub", "research"]
+      command: [Research]
     then:
       output:
-        - "Fetching https://kristiyanvelkov.com … HTTP 200"
-        - "Bio: Docker Captain, author, conference speaker."
-        - "Fetching https://leanpub.com … found Docker and Next.js publications."
+        - "Sources"
+        - "  https://kristiyanvelkov.com     HTTP 200"
+        - "  https://leanpub.com             HTTP 200"
+        - ""
+        - "══════════════════════════════════════════════════════════════"
+        - "  Kristiyan Velkov"
+        - "  https://kristiyanvelkov.com"
+        - "══════════════════════════════════════════════════════════════"
+        - ""
+        - "  Docker Captain · International tech speaker · Author"
+        - "  Open-source contributor · Mentor"
+        - ""
+        - "  12+ years in Front-end, DevOps, and open-source technologies."
+        - ""
+        - "  Specialties: React, TypeScript, JavaScript, Docker, DevOps,"
+        - "  AI, and Security"
+        - ""
+        - "  350+ technical interviews · 100+ technology certifications"
+        - ""
+        - "Books"
+        - "──────────────────────────────────────────────────────────────"
+        - "  • Docker for React.js Developers"
+        - "    Docker, DevOps & production React"
+        - ""
+        - "  • Mastering React.js Interviews: For Middle/Senior Developers"
+        - "    Advanced React & interview preparation"
+        - ""
+        - "  • Mastering React.js Interviews: From 0 to Hero"
+        - "    React interview preparation"
+        - ""
+        - "  • Mastering TypeScript Core Utility Types"
+        - "    TypeScript & utility types"
+        - "──────────────────────────────────────────────────────────────"
+        - ""
+        - "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        - "  🟢 AICODE50 — 50% OFF ALL MY BOOKS"
+        - "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        - ""
+        - "  Use discount code:  AICODE50"
+        - ""
+        - "  [Buy your book with discount →](https://kristiyanvelkov.com)"
 
-  - id: agent-denied
+  - id: prompt-denied
     completes: denied-sites
     when:
-      agent: true
-      promptContains: ["google", "linkedin"]
+      command: [Search, Google]
     then:
       output:
-        - " $ curl https://google.com"
-        - " Blocked by network policy (deniedDomains: google.com)"
-        - " $ curl https://linkedin.com"
-        - " Blocked by network policy (deniedDomains: linkedin.com)"
+        - "$ curl -sS https://google.com"
+        - "curl: (7) Failed to connect to google.com port 443 after 1 ms: Couldn't connect to server"
+        - "$ curl -sS https://linkedin.com"
+        - "curl: (7) Failed to connect to linkedin.com port 443 after 1 ms: Couldn't connect to server"
+
+  - id: sbx-ls
+    when:
+      command: [sbx, ls]
+    then:
+      output:
+        - "SANDBOX             AGENT    STATUS    PORTS   WORKSPACE"
+        - "lab5-kit            cursor   running           /workspace"
 
   - id: policy-log-lab5
     when:
       command: [sbx, policy, log, lab5-kit]
     then:
       output:
-        - "kristiyanvelkov.com    ALLOWED"
-        - "leanpub.com            ALLOWED"
-        - "google.com             BLOCKED"
-        - "linkedin.com           BLOCKED"
+        - "TIME                  SANDBOX   HOST                    DECISION  RULE"
+        - "2026-09-16T16:10:02Z  lab5-kit  kristiyanvelkov.com     allow     kit"
+        - "2026-09-16T16:10:04Z  lab5-kit  leanpub.com             allow     kit"
+        - "2026-09-16T16:10:11Z  lab5-kit  google.com              deny      kit"
+        - "2026-09-16T16:10:12Z  lab5-kit  linkedin.com            deny      kit"
 
   - id: curl-dev-server
     when:
       command: [sbx, exec, lab5-kit]
       promptContains: ["3000"]
     then:
-      output: ["200"]
+      output:
+        - "Sandbox lab5-kit started successfully"
+        - "200"
 
-  - id: agent-inspect-kit
+  - id: prompt-inspect-kit
     completes: inspect-kit
     when:
-      agent: true
-      promptContains: ["kit", "spec.yaml", "rules"]
+      command: [What, did]
     then:
       output:
-        - "Injected .cursor/rules/: cursor-agent.mdc, sandbox-workshop.mdc, …"
-        - "Injected .claude/skills/workshop-app/SKILL.md"
-        - "network.allowedDomains: registry.npmjs.org, kristiyanvelkov.com, leanpub.com, …"
-        - "commands.startup: workshop-bootstrap.sh → npm ci + npm run dev :3000"
+        - ".cursor/rules/cursor-agent.mdc"
+        - ".cursor/rules/sandbox-workshop.mdc"
+        - ".claude/skills/workshop-app/SKILL.md"
+        - ""
+        - "network.allowedDomains: registry.npmjs.org, kristiyanvelkov.com, leanpub.com"
+        - "commands.startup: workshop-bootstrap.sh"
 
   - id: sbx-rm-lab5
     completes: cleanup
@@ -94,4 +247,6 @@ scenarios:
         --force: { any: true }
     then:
       state: { kitRunning: false, devServerUp: false }
-      output: ["lab5-kit removed"]
+      output:
+        - "Deleting sandbox lab5-kit..."
+        - "Sandbox 'lab5-kit' removed"

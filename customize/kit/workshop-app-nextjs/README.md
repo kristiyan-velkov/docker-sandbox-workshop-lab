@@ -32,6 +32,14 @@ workshop-app-nextjs/
 
 **Platform split:** `workshop-app` is the sbx playground. Register, login, and lab progress live on the [hosted platform](https://nextjs-26f1-3000.prg1.zerops.app/) — set `NEXT_PUBLIC_PLATFORM_URL` in `.env.local`.
 
+## Playground
+
+```bash
+git clone https://github.com/kristiyan-velkov/docker-sandbox-workshop.git
+cd docker-sandbox-workshop/workshop-app
+npm install
+```
+
 ## Run (Lab 5)
 
 Workspace **must** contain `package.json`. From inside `workshop-app/`:

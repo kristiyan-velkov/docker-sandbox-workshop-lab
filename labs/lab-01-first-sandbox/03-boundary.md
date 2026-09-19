@@ -1,9 +1,11 @@
 # Workspace boundary
 
-The file :filelink[delete-me.txt]{path="delete-me.txt"} lives **outside** the synced workspace.
+The workspace mount is the only host path the sandbox can change. :filelink[delete-me.txt]{path="delete-me.txt"} sits **outside** that mount — one level above `workspace/`.
 
-Ask the agent:
+From inside the sandbox the path is `../delete-me.txt`. Ask Cursor to delete it (or click Run):
 
-> Try to delete `../delete-me.txt` from this workspace. Report whether it worked and explain why sandbox workspace mounts limit what you can change on the host.
+```bash terminal-id=host
+Try to delete ../delete-me.txt from this workspace and report whether it worked.
+```
 
-The file should remain — the agent cannot remove paths outside the workspace mount.
+The agent runs `rm` and gets **Permission denied**. The file is not in the sandbox workspace, so it stays on the host.

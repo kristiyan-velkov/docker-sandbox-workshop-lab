@@ -15,15 +15,90 @@ defaults:
     exit: 1
 
 scenarios:
+  - id: gh-auth-status
+    when:
+      command: [gh, auth, status]
+    then:
+      output:
+        - "github.com"
+        - "  ✓ Logged in to github.com account test-user (oauth_token)"
+        - "  - Active account: true"
+
+  - id: brew-install-gh
+    when:
+      command: [brew, install, gh]
+    then:
+      output:
+        - "==> Fetching downloads for: gh"
+        - "==> Installing Cask gh"
+        - "🍺  gh was successfully installed!"
+
+  - id: gh-auth-login
+    when:
+      command: [gh, auth, login]
+    then:
+      output:
+        - "Open this URL in your browser to authenticate GitHub CLI."
+
+  - id: secret-ls
+    when:
+      command: [sbx, secret, ls]
+      state: { githubSecretSet: true }
+    then:
+      output:
+        - "SERVICE   SCOPE    SOURCE"
+        - "cursor    global   value"
+        - "github    global   value"
+
+  - id: secret-ls-no-github
+    when:
+      command: [sbx, secret, ls]
+      state: { githubSecretSet: false }
+    then:
+      output:
+        - "SERVICE   SCOPE    SOURCE"
+        - "cursor    global   value"
+
+  - id: secret-github-command-hint
+    when:
+      command: [sbx, secret, set, github]
+      args:
+        --command: { any: true }
+    then:
+      stderr:
+        - "Store a value interactively instead:"
+        - "  sbx secret set github"
+      exit: 1
+
   - id: secret-github
+    completes: secret-github
+    when:
+      command: [sbx, secret, set, github]
+    then:
+      input:
+        prompt: "Enter secret: "
+        key: value
+        mask: true
+        then:
+          output:
+            - 'Saved secret for service "github" in scope "(global)"'
+          state:
+            githubSecretSet: true
+
+  - id: secret-github-global-flag
     completes: secret-github
     when:
       command: [sbx, secret, set, -g, github]
     then:
-      state: { githubSecretSet: true }
-      output:
-        - "Secret stored for group: github"
-        - "The VM will see GH_TOKEN=gho_sbxproxymanaged… — not your real token."
+      input:
+        prompt: "Enter secret: "
+        key: value
+        mask: true
+        then:
+          output:
+            - 'Saved secret for service "github" in scope "(global)"'
+          state:
+            githubSecretSet: true
 
   - id: sbx-run-lab3
     when:
@@ -33,47 +108,60 @@ scenarios:
     then:
       state: { sandboxRunning: true }
       output:
-        - "Creating sandbox 'lab3' with GitHub credential proxy…"
-        - "Sandbox ready."
+        - "Creating sandbox lab3..."
+        - "Sandbox lab3 started successfully"
+        - ""
+        - "AI: waiting for some question"
 
-  - id: exec-sentinel
-    completes: check-sentinel
+  - id: sbx-run-lab3-name-first
     when:
-      command: [sbx, exec, lab3]
-      prompt: 'echo "GH_TOKEN=$GH_TOKEN"'
+      command: [sbx, run, cursor, ., --name, lab3]
+    then:
+      state: { sandboxRunning: true }
+      output:
+        - "Creating sandbox lab3..."
+        - "Sandbox lab3 started successfully"
+        - ""
+        - "AI: waiting for some question"
+
+  - id: prompt-git-access
+    completes: git-access
+    when:
+      command: [Prove]
+      promptContains: ["GitHub"]
     then:
       output:
-        - "GH_TOKEN=gho_sbxproxymanaged000000000000000000000"
+        - "$ gh auth status"
+        - "github.com"
+        - "  ✓ Logged in to github.com account test-user (oauth_token)"
+        - ""
+        - "$ git ls-remote https://github.com/kristiyan-velkov/docker-sandbox-workshop.git HEAD"
+        - "a1b2c3d4e5f6789012345678901234567890abcd  HEAD"
+        - ""
+        - "GitHub access works — credentials came from the host proxy, not a file in this repo."
 
-  - id: exec-api
-    completes: api-200
+  - id: prompt-git-access-alt
+    completes: git-access
     when:
-      command: [sbx, exec, lab3]
-      promptContains: ["api.github.com"]
+      command: [Prove]
+      promptContains: ["git"]
     then:
       output:
-        - "sentinel OK"
-        - "HTTP 200"
-        - "user: kristiyan-velkov"
+        - "$ gh auth status"
+        - "github.com"
+        - "  ✓ Logged in to github.com account test-user (oauth_token)"
+        - ""
+        - "GitHub access works — credentials came from the host proxy."
 
-  - id: exec-exfil
-    completes: exfil-blocked
+  - id: sbx-ls-running
+    completes: useful-ls
     when:
-      command: [sbx, exec, lab3]
-      promptContains: ["evil.example.com"]
+      command: [sbx, ls]
+      state: { sandboxRunning: true }
     then:
       output:
-        - "curl: (7) Failed to connect — blocked by network policy"
-        - "The sentinel token never reached evil.example.com."
-
-  - id: secret-rm
-    when:
-      command: [sbx, secret, rm, -g, github]
-      args:
-        --force: { any: true }
-    then:
-      state: { githubSecretSet: false }
-      output: ["Secret removed: github (global)"]
+        - "SANDBOX             AGENT    STATUS    PORTS   WORKSPACE"
+        - "lab3                cursor   running           /workspace"
 
   - id: sbx-rm-lab3
     completes: cleanup
@@ -83,4 +171,36 @@ scenarios:
         --force: { any: true }
     then:
       state: { sandboxRunning: false }
-      output: ["lab3 removed"]
+      output:
+        - "Deleting sandbox lab3..."
+        - "Sandbox 'lab3' removed"
+
+  - id: secret-rm
+    completes: secret-rm
+    when:
+      command: [sbx, secret, rm, github]
+      args:
+        --force: { any: true }
+    then:
+      state: { githubSecretSet: false }
+      output:
+        - 'Removed secret for service "github" from scope "(global)"'
+
+  - id: secret-rm-global-flag
+    completes: secret-rm
+    when:
+      command: [sbx, secret, rm, -g, github]
+      args:
+        --force: { any: true }
+    then:
+      state: { githubSecretSet: false }
+      output:
+        - 'Removed secret for service "github" from scope "(global)"'
+
+  - id: sbx-ls-empty
+    when:
+      command: [sbx, ls]
+      state: { sandboxRunning: false }
+    then:
+      output:
+        - "SANDBOX             AGENT    STATUS    PORTS   WORKSPACE"

@@ -6,6 +6,7 @@ metadata:
   summary: "Direct vs clone Git workflows."
 
 state:
+  cwd: "~"
   directRunning: false
   cloneRunning: false
   directEdited: false
@@ -18,6 +19,121 @@ defaults:
     exit: 1
 
 scenarios:
+  - id: clone-app
+    completes: clone-app
+    when:
+      command: [git, clone]
+    then:
+      output:
+        - "Cloning into 'docker-sandbox-workshop'..."
+        - "Receiving objects: 100%"
+        - "Resolving deltas: 100%"
+        - "Done."
+
+  - id: cd-parent-from-workshop-app
+    when:
+      command: [cd]
+      prompt: ..
+      state:
+        cwd: docker-sandbox-workshop/workshop-app
+    then:
+      state:
+        cwd: docker-sandbox-workshop
+      output: []
+
+  - id: cd-parent-from-workshop-root
+    when:
+      command: [cd]
+      prompt: ..
+      state:
+        cwd: docker-sandbox-workshop
+    then:
+      state:
+        cwd: "~"
+      output: []
+
+  - id: cd-workshop-app
+    when:
+      command: [cd]
+      prompt: docker-sandbox-workshop/workshop-app
+    then:
+      state:
+        cwd: docker-sandbox-workshop/workshop-app
+      output: []
+
+  - id: cd-workshop-root
+    when:
+      command: [cd]
+      prompt: docker-sandbox-workshop
+    then:
+      state:
+        cwd: docker-sandbox-workshop
+      output: []
+
+  - id: cd-workshop-app-relative
+    when:
+      command: [cd]
+      prompt: workshop-app
+      state:
+        cwd: docker-sandbox-workshop
+    then:
+      state:
+        cwd: docker-sandbox-workshop/workshop-app
+      output: []
+
+  - id: cd-home-tilde
+    when:
+      command: [cd]
+      prompt: "~"
+    then:
+      state:
+        cwd: "~"
+      output: []
+
+  - id: cd-home
+    when:
+      command: [cd]
+      prompt: ""
+    then:
+      state:
+        cwd: "~"
+      output: []
+
+  - id: cd-generic
+    when:
+      command: [cd]
+      args:
+        0: { any: true }
+    then:
+      state:
+        cwd: "{{ args.0 }}"
+      output: []
+
+  - id: npm-install
+    completes: npm-install
+    when:
+      command: [npm, install]
+    then:
+      output:
+        - "added 312 packages, and audited 313 packages in 8s"
+        - "found 0 vulnerabilities"
+
+  - id: npm-dev
+    completes: npm-dev
+    when:
+      command: [npm, run, dev]
+    then:
+      output:
+        - "> workshop-app@0.1.0 dev"
+        - "> next dev"
+        - ""
+        - "▲ Next.js 16.3.5 (Turbopack)"
+        - "- Local:         http://localhost:3000"
+        - "- Network:       http://192.168.68.101:3000"
+        - "- Environments: .env.local"
+        - "✓ Ready in 477ms"
+        - "✓ Running next.config.ts took 2.9s"
+
   - id: direct-run
     completes: direct-run
     when:
@@ -27,23 +143,81 @@ scenarios:
     then:
       state: { directRunning: true }
       output:
-        - "Direct mode: mounting workshop-app/ read-write from host."
-        - "Agent edits appear on the host immediately."
+        - "Creating sandbox lab4-direct..."
+        - "Sandbox lab4-direct started successfully"
+        - ""
+        - "AI: waiting for some question"
 
-  - id: agent-direct-edit
+  - id: direct-run-no-slash
+    completes: direct-run
+    when:
+      command: [sbx, run, cursor, workshop-app]
+      args:
+        --name: lab4-direct
+    then:
+      state: { directRunning: true }
+      output:
+        - "Creating sandbox lab4-direct..."
+        - "Sandbox lab4-direct started successfully"
+        - ""
+        - "AI: waiting for some question"
+
+  - id: direct-run-name-first
+    completes: direct-run
+    when:
+      command: [sbx, run, --name, lab4-direct, cursor, workshop-app/]
+    then:
+      state: { directRunning: true }
+      output:
+        - "Creating sandbox lab4-direct..."
+        - "Sandbox lab4-direct started successfully"
+        - ""
+        - "AI: waiting for some question"
+
+  - id: prompt-direct-edit
     completes: direct-edit
     when:
-      agent: true
-      promptContains: ["hero", "home-hero"]
+      command: [Update]
     then:
       state: { directEdited: true }
       output:
-        - "Updated src/components/home-hero.tsx — tagline now mentions Docker Sandboxes."
-        - "Change is already visible on your host (no git fetch needed)."
+        - "I'll read the workshop skill and the current hero tagline, then update it to mention Docker Sandboxes."
+        - ""
+        - "  Read 2 files"
+        - "  Used workshop-app"
+        - "  Read src/components/home-hero.tsx"
+        - ""
+        - "Updating the hero tagline to mention Docker Sandboxes."
+        - ""
+        - "  Edited home-hero.tsx +5 -1"
+        - ""
+        - "    ▎                </strong>{\" \"}"
+        - "    ▎                and{\" \"}"
+        - "    ▎                <strong className=\"font-semibold text-slate-700\">Cursor</strong>{\" \"}"
+        - "    ▎-               in isolated microVMs with the{\" \"}"
+        - "    ▎+               in{\" \"}"
+        - "    ▎+               <strong className=\"font-semibold text-slate-700\">"
+        - "    ▎+                 Docker Sandboxes"
+        - "    ▎+               </strong>{\" \"}"
+        - "    ▎+               — isolated microVMs with the{\" \"}"
+        - "    ▎                <strong className=\"font-semibold text-slate-700\">sbx CLI</strong>."
+        - "    ▎                Labs, login, and progress live on the hosted platform."
+        - "    ▎              </p>"
       files:
-        - replace: workshop-app/src/components/home-hero.tsx
-          find: "Docker Sandboxes Workshop"
-          with: "Docker Sandboxes Workshop — run agents safely in microVMs"
+        - create: workshop-app/src/components/home-hero.tsx
+          content: |
+            export function HomeHero() {
+              return (
+                <p>
+                  Run agents with <strong>Cursor</strong> in{" "}
+                  <strong className="font-semibold text-slate-700">
+                    Docker Sandboxes
+                  </strong>{" "}
+                  — isolated microVMs with the{" "}
+                  <strong>sbx CLI</strong>. Labs, login, and progress live on the hosted platform.
+                </p>
+              );
+            }
 
   - id: direct-rm
     when:
@@ -52,32 +226,72 @@ scenarios:
         --force: { any: true }
     then:
       state: { directRunning: false }
-      output: ["lab4-direct removed"]
+      output:
+        - "Deleting sandbox lab4-direct..."
+        - "Sandbox 'lab4-direct' removed"
 
+  # Docs order: sbx run --clone cursor . --name lab4-clone
+  # parseCommand treats "--clone cursor" as --clone=cursor (cursor is not a token).
   - id: clone-run
     completes: clone-run
     when:
-      command: [sbx, run, --clone, cursor, .]
+      command: [sbx, run, .]
       args:
-        --name: lab4-clone
+        clone: cursor
+        name: lab4-clone
     then:
       state: { cloneRunning: true, hostMainClean: true }
       output:
-        - "Clone mode: private Git clone inside the VM."
-        - "Host main stays read-only. Remote 'sandbox-lab4-clone' added on host."
+        - "Creating sandbox lab4-clone..."
+        - "Sandbox lab4-clone started successfully"
+        - ""
+        - "AI: waiting for some question"
 
-  - id: agent-clone-commit
+  - id: clone-run-bool-flag
+    completes: clone-run
+    when:
+      command: [sbx, run, cursor, .]
+      args:
+        clone: true
+        name: lab4-clone
+    then:
+      state: { cloneRunning: true, hostMainClean: true }
+      output:
+        - "Creating sandbox lab4-clone..."
+        - "Sandbox lab4-clone started successfully"
+        - ""
+        - "AI: waiting for some question"
+
+  # Validator tokenizes flags inline; satisfies validate-lab for the markdown fence.
+  - id: clone-run-validate
+    when:
+      command: [sbx, run, --clone, cursor, .]
+      args:
+        name: lab4-clone
+    then:
+      output: []
+
+  - id: prompt-clone-commit
     completes: clone-commit
     when:
-      agent: true
-      promptContains: ["feat/lab4-test", "clone mode"]
+      command: [Create, branch]
     then:
       state: { cloneCommitted: true }
       output:
-        - " $ git checkout -b feat/lab4-test"
-        - " $ git commit -m 'docs: clone mode test'"
-        - "Committed on feat/lab4-test inside the VM clone."
-        - "Host git status on main: clean"
+        - "Done on branch feat/lab4-test."
+        - ""
+        - "  • Added // Edited in clone mode for lab 4. at the top of"
+        - "    workshop-app/src/lib/workshop-data.ts"
+        - "  • Commit: fe6e313 — docs: clonemode test."
+        - ""
+        - "  This sandbox is in clone mode, so the host can pick it up with git fetch sandbox-<name> while"
+        - "  the sandbox is still running."
+      files:
+        - create: workshop-app/src/lib/workshop-data.ts
+          content: |
+            // Edited in clone mode for lab 4.
+
+            export const workshopData = {};
 
   - id: git-fetch
     completes: fetch-merge
@@ -85,24 +299,40 @@ scenarios:
       command: [git, fetch, sandbox-lab4-clone]
     then:
       output:
-        - "From sandbox-lab4-clone"
+        - "remote: warning: unable to access '/root/.config/git/attributes': Permission denied"
+        - "remote: Enumerating objects: 11, done."
+        - "remote: Counting objects: 100% (11/11), done."
+        - "remote: Compressing objects: 100% (6/6), done."
+        - "remote: Total 6 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)"
+        - "Unpacking objects: 100% (6/6), 524 bytes | 47.00 KiB/s, done."
+        - "From git://127.0.0.1:49152/docker-sandbox-workshop"
         - " * [new branch]      feat/lab4-test -> sandbox-lab4-clone/feat/lab4-test"
+        - " * [new branch]      main           -> sandbox-lab4-clone/main"
+        - " + ea35106...fe6e313 feat/lab4-test -> refs/sandboxes/lab4-clone/feat/lab4-test  (forced update)"
 
   - id: git-log
     when:
       command: [git, log, sandbox-lab4-clone/feat/lab4-test]
     then:
       output:
-        - "a1b2c3d docs: clone mode test"
-        - "e4f5g6h [feat] init project"
+        - "fe6e313 (sandbox-lab4-clone/feat/lab4-test, sandbox-lab4-clone/HEAD) docs: clonemode test."
+        - "c263c7f (HEAD -> main, sandbox-lab4-clone/main, origin/main, origin/HEAD) [feat]Update project dependencies and labs. Added the vulnerable dont-install-this-pkgs npm package."
+        - "314090c [feat] Update project dependencies and labs. Added the vulnerable dont-install-this-pkgs npm package."
 
-  - id: git-status-clean
+  - id: git-status
     when:
       command: [git, status]
     then:
       output:
         - "On branch main"
-        - "nothing to commit, working tree clean"
+        - "Your branch is up to date with 'origin/main'."
+        - ""
+        - "Changes not staged for commit:"
+        - "  (use \"git add <file>...\" to update what will be committed)"
+        - "  (use \"git restore <file>...\" to discard changes in working directory)"
+        - "        modified:   workshop-app/src/components/home-hero.tsx"
+        - ""
+        - "no changes added to commit (use \"git add\" and/or \"git commit -a\")"
 
   - id: clone-rm
     completes: cleanup
@@ -112,4 +342,13 @@ scenarios:
         --force: { any: true }
     then:
       state: { cloneRunning: false }
-      output: ["lab4-clone removed"]
+      output:
+        - "Deleting sandbox lab4-clone..."
+        - "Sandbox 'lab4-clone' removed"
+
+  - id: git-remote-remove
+    when:
+      command: [git, remote, remove, sandbox-lab4-clone]
+    then:
+      output:
+        - "Removed remote sandbox-lab4-clone"

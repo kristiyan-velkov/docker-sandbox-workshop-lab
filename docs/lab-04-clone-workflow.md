@@ -2,13 +2,25 @@
 
 ## Setup (host)
 
+Clone the playground (it is not vendored in this lab repo):
+
 ```bash
 git clone https://github.com/kristiyan-velkov/docker-sandbox-workshop.git
-cd docker-sandbox-workshop/workshop-app
-npm install && npm run dev
 ```
 
-Open **http://localhost:3000** — confirm the site loads. Stop with **Ctrl+C**, then return to the repo root:
+```bash
+cd docker-sandbox-workshop/workshop-app
+```
+
+```bash
+npm install
+```
+
+```bash
+npm run dev
+```
+
+Open the **Local** URL from the output (often **http://localhost:3000**, or **3001** if 3000 is in use) — confirm the site loads. Stop with **Ctrl+C**, then return to the repo root:
 
 ```bash
 cd ..
@@ -64,15 +76,27 @@ While the agent works, `git status` on host `main` should stay clean.
 
 ```bash
 git fetch sandbox-lab4-clone
+```
+
+```bash
 git log sandbox-lab4-clone/feat/lab4-test --oneline -3
+```
+
+```bash
 git diff main..sandbox-lab4-clone/feat/lab4-test
-git status   # main still clean
+```
+
+```bash
+git status
 ```
 
 ### 7. Push and merge into main
 
 ```bash
 git checkout -b feat/lab4-test sandbox-lab4-clone/feat/lab4-test
+```
+
+```bash
 git push -u origin feat/lab4-test
 ```
 
@@ -85,7 +109,10 @@ Merge (pick one):
 
 ```bash
 sbx rm lab4-clone --force
-git remote remove sandbox-lab4-clone 2>/dev/null || true
+```
+
+```bash
+git remote remove sandbox-lab4-clone
 ```
 
 ---

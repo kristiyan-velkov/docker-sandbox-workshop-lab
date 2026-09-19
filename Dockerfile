@@ -18,14 +18,17 @@
 ARG RUNTIME_IMAGE=dockersamples/simspace:latest
 ARG AUTHORING_IMAGE=dockersamples/simspace-authoring:latest
 
-# Generate labs.json from labs/*/labspace.yaml using the authoring image.
 FROM ${AUTHORING_IMAGE} AS catalog
 WORKDIR /work
 COPY labs/ ./labs/
 RUN npm run generate-catalog -- /work/labs /work/labs.json
 
 FROM ${RUNTIME_IMAGE}
-# Replace the runtime image's sample labs + catalog with this repo's.
 RUN rm -rf /usr/share/nginx/html/labs /usr/share/nginx/html/labs.json
 COPY labs/ /usr/share/nginx/html/labs/
 COPY --from=catalog /work/labs.json /usr/share/nginx/html/labs.json
+COPY public/config.json /usr/share/nginx/html/config.json
+COPY public/workshop-catalog-promo.css /usr/share/nginx/html/workshop-catalog-promo.css
+COPY public/workshop-catalog-promo.js /usr/share/nginx/html/workshop-catalog-promo.js
+COPY scripts/patch-index-html.py /tmp/patch-index-html.py
+RUN python3 /tmp/patch-index-html.py /usr/share/nginx/html/index.html && rm /tmp/patch-index-html.py

@@ -6,6 +6,7 @@ metadata:
   summary: "Build and run your own mixin kit."
 
 state:
+  cwd: "~"
   templateCopied: false
   specEdited: false
   validated: false
@@ -17,41 +18,249 @@ defaults:
     exit: 1
 
 scenarios:
+  - id: cd-workshop-root
+    when:
+      command: [cd]
+      args:
+        0:
+          oneOf: ["docker-sandbox-workshop", "./docker-sandbox-workshop"]
+    then:
+      state:
+        cwd: docker-sandbox-workshop
+      output: []
+
+  - id: cd-parent-from-workshop-app
+    when:
+      command: [cd]
+      prompt: ..
+      state:
+        cwd: docker-sandbox-workshop/workshop-app
+    then:
+      state:
+        cwd: docker-sandbox-workshop
+      output: []
+
+  - id: cd-parent-from-workshop-root
+    when:
+      command: [cd]
+      prompt: ..
+      state:
+        cwd: docker-sandbox-workshop
+    then:
+      state:
+        cwd: "~"
+      output: []
+
+  - id: cd-workshop-app
+    when:
+      command: [cd]
+      args:
+        0:
+          oneOf: ["workshop-app", "./workshop-app", "docker-sandbox-workshop/workshop-app"]
+    then:
+      state:
+        cwd: docker-sandbox-workshop/workshop-app
+      output: []
+
+  - id: cd-workshop-app-relative
+    when:
+      command: [cd]
+      prompt: workshop-app
+      state:
+        cwd: docker-sandbox-workshop
+    then:
+      state:
+        cwd: docker-sandbox-workshop/workshop-app
+      output: []
+
+  - id: cd-home-tilde
+    when:
+      command: [cd]
+      prompt: "~"
+    then:
+      state:
+        cwd: "~"
+      output: []
+
+  - id: cd-home
+    when:
+      command: [cd]
+      prompt: ""
+    then:
+      state:
+        cwd: "~"
+      output: []
+
+  - id: cd-generic
+    when:
+      command: [cd]
+      args:
+        0: { any: true }
+    then:
+      state:
+        cwd: "{{ args.0 }}"
+      output: []
+
   - id: copy-template
     completes: copy-template
     when:
-      command: [cp, -r]
-      promptContains: ["kit-template", "my-workshop-kit"]
+      command: [cp]
+      args:
+        r:
+          oneOf:
+            - "lab-06-customize-stack/kit-template"
+            - "./lab-06-customize-stack/kit-template"
+            - "lab-06-customize-stack/kit-template/"
+        0:
+          oneOf: ["my-workshop-kit", "./my-workshop-kit"]
     then:
       state: { templateCopied: true }
+      files:
+        - create: my-workshop-kit/spec.yaml
+          content: |
+            schemaVersion: "2"
+            kind: mixin
+            name: my-workshop-kit
+            displayName: My workshop kit
+            description: >-
+              Custom kit template for Lab 6 — edit name, network, env, and startup description.
+
+            permissions:
+              network:
+                allow:
+                  - registry.npmjs.org
+                deny:
+                  - google.com
+
+            environment:
+              variables:
+                NEXT_TELEMETRY_DISABLED: "1"
+
+            setup:
+              startup:
+                - command: [sh, /home/agent/.local/bin/workshop-bootstrap.sh]
+                  user: "1000"
+                  background: true
+                  description: npm ci (if needed) and Next.js dev server on :3000
+        - create: my-workshop-kit/README.md
+          content: |
+            Lab 6 custom kit — edit spec.yaml and files/workspace/.
+      output: []
+
+  - id: ls-my-workshop-kit
+    when:
+      command: [ls]
+      args:
+        0:
+          oneOf:
+            - "my-workshop-kit"
+            - "./my-workshop-kit"
+            - "my-workshop-kit/"
+            - "./my-workshop-kit/"
+    then:
       output:
-        - "Copied kit-template/ → my-workshop-kit/"
-        - "Contents: spec.yaml, files/home/, files/workspace/"
+        - "README.md"
+        - "files"
+        - "spec.yaml"
+
+  - id: ls-kit
+    when:
+      command: [ls]
+    then:
+      output:
+        - "README.md"
+        - "files"
+        - "spec.yaml"
+
+  - id: cat-kit-spec
+    completes: view-spec
+    when:
+      command: [cat]
+      args:
+        0:
+          oneOf: ["my-workshop-kit/spec.yaml", "./my-workshop-kit/spec.yaml"]
+    then:
+      output: []
 
   - id: kit-validate
     completes: kit-validate
     when:
       command: [sbx, kit, validate]
-      promptContains: ["my-workshop-kit"]
+      args:
+        0:
+          oneOf: ["./my-workshop-kit", "my-workshop-kit"]
       state: { templateCopied: true }
     then:
       state: { validated: true, specEdited: true }
       output:
-        - "✓ schemaVersion"
-        - "✓ kind: mixin"
-        - "✓ network.allowedDomains"
-        - "✓ commands.startup"
-        - "Kit validation passed."
+        - "VALID: ./my-workshop-kit (directory)"
+        - "✓ permissions.network.allow"
+        - "✓ permissions.network.deny"
+        - "✓ setup.startup"
+
+  - id: kit-validate-no-copy
+    completes: kit-validate
+    when:
+      command: [sbx, kit, validate]
+      args:
+        0:
+          oneOf: ["./my-workshop-kit", "my-workshop-kit"]
+    then:
+      state: { templateCopied: true, validated: true, specEdited: true }
+      output:
+        - "VALID: ./my-workshop-kit (directory)"
+        - "✓ permissions.network.allow"
+        - "✓ permissions.network.deny"
+        - "✓ setup.startup"
 
   - id: kit-inspect
     when:
       command: [sbx, kit, inspect]
-      promptContains: ["my-workshop-kit"]
+      args:
+        0:
+          oneOf: ["./my-workshop-kit", "my-workshop-kit"]
     then:
       output:
-        - "name: my-workshop-kit"
-        - "network.allowedDomains: [registry.npmjs.org, …]"
-        - "commands.startup: workshop-bootstrap.sh"
+        - ""
+        - "  Name:           my-workshop-kit"
+        - "  Kind:           mixin"
+        - "  Schema:         v2"
+        - "  Display:        My workshop kit"
+        - "  Description:    Custom kit template for Lab 6"
+        - ""
+        - "  Policies:"
+        - "    Network allow: registry.npmjs.org"
+        - "    Network deny:  google.com"
+        - "    Setup:         0 install, 1 startup, 0 files"
+        - "    Files:        1 home, workspace skills"
+
+  - id: cp-env-workshop-app
+    when:
+      command: [cp]
+      args:
+        0:
+          oneOf:
+            - "workshop-app/.env.sandbox.example"
+            - "./workshop-app/.env.sandbox.example"
+        1:
+          oneOf:
+            - "workshop-app/.env.local"
+            - "./workshop-app/.env.local"
+    then:
+      output:
+        - "copied workshop-app/.env.sandbox.example → workshop-app/.env.local"
+
+  - id: cp-env-local
+    when:
+      command: [cp]
+      args:
+        0:
+          oneOf: [".env.sandbox.example", "./.env.sandbox.example"]
+        1:
+          oneOf: [".env.local", "./.env.local"]
+    then:
+      output:
+        - "copied .env.sandbox.example → .env.local"
 
   - id: kit-run-lab6
     completes: kit-run
@@ -63,18 +272,61 @@ scenarios:
     then:
       state: { kitRunning: true }
       output:
-        - "Applying custom kit: my-workshop-kit"
-        - "Bootstrap: npm ci + dev server on :3000"
-        - "Sandbox ready."
+        - "Creating sandbox lab6-my-kit..."
+        - "Sandbox lab6-my-kit started successfully"
+        - ""
+        - "AI: waiting for some question"
 
-  - id: agent-skill
+  - id: sbx-ls-lab6
     when:
-      agent: true
-      promptContains: ["SKILL.md", "kit rules"]
+      command: [sbx, ls]
+      state: { kitRunning: true }
     then:
       output:
-        - "Read .claude/skills/my-workshop-kit/SKILL.md"
-        - "Your kit rules: team conventions, allowed domains, bootstrap behavior."
+        - "SANDBOX             AGENT    STATUS    PORTS   WORKSPACE"
+        - "lab6-my-kit         cursor   running           /workspace"
+
+  - id: sbx-ls-empty
+    when:
+      command: [sbx, ls]
+      state: { kitRunning: false }
+    then:
+      output:
+        - "SANDBOX             AGENT    STATUS    PORTS   WORKSPACE"
+
+  - id: sbx-exec-curl-200
+    completes: verify-kit
+    when:
+      command: [sbx, exec, lab6-my-kit]
+      args:
+        0: "http://127.0.0.1:3000"
+        w: { any: true }
+    then:
+      output:
+        - "200"
+
+  - id: sbx-exec-skill-ok
+    completes: verify-kit
+    when:
+      command: [sbx, exec, lab6-my-kit]
+      args:
+        f:
+          oneOf:
+            - ".claude/skills/my-workshop-kit/SKILL.md"
+            - "./.claude/skills/my-workshop-kit/SKILL.md"
+    then:
+      output:
+        - "skill OK"
+
+  - id: prompt-skill
+    completes: verify-kit
+    when:
+      command: [Read]
+    then:
+      output:
+        - ".claude/skills/my-workshop-kit/SKILL.md"
+        - ""
+        - "Team conventions, allowed domains, and bootstrap behavior from your kit."
 
   - id: sbx-rm-lab6
     completes: cleanup
@@ -84,4 +336,6 @@ scenarios:
         --force: { any: true }
     then:
       state: { kitRunning: false }
-      output: ["lab6-my-kit removed"]
+      output:
+        - "Deleting sandbox lab6-my-kit..."
+        - "Sandbox 'lab6-my-kit' removed"

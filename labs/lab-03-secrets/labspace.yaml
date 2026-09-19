@@ -3,7 +3,7 @@ description: "Inject GitHub tokens via the host proxy — sentinel values never 
 
 catalog:
   icon: key
-  tags: ["secrets", "credentials", "github"]
+  tags: ["github", "secrets", "credentials"]
   estimatedMinutes: 20
   order: 3
 
@@ -22,23 +22,17 @@ sections:
     steps:
       - id: secret-github
         title: "Store GitHub secret"
-  - title: Sentinel value
-    contentPath: 02-sentinel.md
+  - title: Prove GitHub access
+    contentPath: 02-git-access.md
     steps:
-      - id: check-sentinel
-        title: "Verify GH_TOKEN sentinel"
-  - title: Live API call
-    contentPath: 03-api.md
-    steps:
-      - id: api-200
-        title: "GitHub API returns 200"
-  - title: Exfiltration blocked
-    contentPath: 04-exfil.md
-    steps:
-      - id: exfil-blocked
-        title: "evil.example.com blocked"
+      - id: git-access
+        title: "Cursor proves GitHub access"
   - title: Clean up
     contentPath: 05-cleanup.md
     steps:
+      - id: useful-ls
+        title: "List sandboxes"
       - id: cleanup
-        title: "Remove sandbox and secret"
+        title: "Remove lab3 sandbox"
+      - id: secret-rm
+        title: "Remove GitHub secret"

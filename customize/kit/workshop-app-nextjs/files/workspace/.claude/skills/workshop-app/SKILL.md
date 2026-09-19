@@ -31,7 +31,7 @@ npm run lint
 ## Rules
 
 1. Add `"use client"` only for hooks and event handlers.
-2. Never commit API keys — use `sbx secret set -g cursor` on the host for the agent.
+2. Never commit API keys — use `sbx secret set cursor` on the host for the agent.
 3. Do not add new UI libraries; keep Apple tokens in `globals.css`.
 4. Read `node_modules/next/dist/docs/` before unfamiliar Next.js 16 APIs.
 5. Lab scripts live in parent `lab-*` folders — not in `workshop-app/`.

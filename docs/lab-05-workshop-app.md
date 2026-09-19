@@ -6,13 +6,25 @@ Use your **Lab 4 clone** — only download if missing.
 
 ```bash
 cd docker-sandbox-workshop
-# missing? → git clone https://github.com/kristiyan-velkov/docker-sandbox-workshop.git && cd docker-sandbox-workshop
+```
+
+If that folder is missing:
+
+```bash
+git clone https://github.com/kristiyan-velkov/docker-sandbox-workshop.git
+```
+
+```bash
+cd docker-sandbox-workshop
 ```
 
 ## 1. Env on the host
 
 ```bash
 cd workshop-app
+```
+
+```bash
 cp .env.sandbox.example .env.local
 ```
 
@@ -37,9 +49,12 @@ Workspace must be **`workshop-app/`** (folder with `package.json`):
 
 ```bash
 cd workshop-app
-sbx run cursor . \
-  --kit ../customize/kit/workshop-app-nextjs \
-  --name lab5-kit
+```
+
+`--kit` applies a mixin only at **create** time ([kits](https://docs.docker.com/ai/sandboxes/customize/kits/)):
+
+```bash
+sbx run cursor . --kit ../customize/kit/workshop-app-nextjs --name lab5-kit
 ```
 
 > **Root cause of past `npm ci` failures:** `commands.install` runs **before** the workspace is mounted. The kit uses `files/home/.local/bin/workshop-bootstrap.sh` + `commands.startup` with `${WORKDIR}`. Pull the latest kit if you still have `commands.install` or inline `initFiles` script.
@@ -71,7 +86,13 @@ sbx policy log lab5-kit --limit 15
 
 ```bash
 sbx ls
+```
+
+```bash
 sbx exec lab5-kit -- curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:3000
+```
+
+```bash
 sbx exec lab5-kit -- ls -la .cursor/rules/
 ```
 

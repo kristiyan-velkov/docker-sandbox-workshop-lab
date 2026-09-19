@@ -3,7 +3,7 @@ description: "Compare direct workspace mounts with isolated Git clone mode on th
 
 catalog:
   icon: call_split
-  tags: ["git", "clone", "workflow"]
+  tags: ["github", "git", "clone", "workflow"]
   estimatedMinutes: 25
   order: 4
 
@@ -17,12 +17,26 @@ terminals:
 files:
   workshop-app/src/components/home-hero.tsx: |
     export function HomeHero() {
-      return <h1>Docker Sandboxes Workshop</h1>;
+      return (
+        <p>
+          Run agents with <strong>Cursor</strong> in isolated microVMs with the{" "}
+          <strong>sbx CLI</strong>. Labs, login, and progress live on the hosted platform.
+        </p>
+      );
     }
 
 sections:
   - title: Introduction
     contentPath: 00-intro.md
+  - title: Get the playground
+    contentPath: 00-setup.md
+    steps:
+      - id: clone-app
+        title: "Clone workshop-app"
+      - id: npm-install
+        title: "Install npm packages"
+      - id: npm-dev
+        title: "Run the app locally"
   - title: Direct mode
     contentPath: 01-direct.md
     steps:

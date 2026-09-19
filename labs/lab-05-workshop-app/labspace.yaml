@@ -3,7 +3,7 @@ description: "Run workshop-app with the pre-built workshop-app-nextjs kit — bo
 
 catalog:
   icon: web
-  tags: ["kit", "nextjs", "network"]
+  tags: ["github", "kit", "nextjs", "network"]
   estimatedMinutes: 20
   order: 5
 

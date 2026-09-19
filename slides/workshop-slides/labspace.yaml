@@ -1,0 +1,38 @@
+# Optional in-browser slide deck (not listed in the Simspace catalog).
+# The landing page uses the featured Canva callout in public/config.json instead.
+# Pattern reference: https://github.com/ajeetraina/simspace-docker-does-that
+kind: slides
+
+title: "Docker Sandboxes Workshop — Presentation"
+description: "Workshop overview, Canva slide deck, and author."
+
+catalog:
+  title: "Workshop presentation"
+  description: "Start here — open the Canva deck, then pick a hands-on lab below."
+  icon: slideshow
+  tags: ["sandboxes", "slides", "start here"]
+  estimatedMinutes: 5
+  order: 0
+
+version: "1.0.0"
+
+theme: light
+
+brand:
+  eyebrow: "Docker Sandboxes Workshop"
+  source: "KRISTIYAN VELKOV · DOCKER CAPTAIN"
+
+# External Canva deck in a tab (same pattern as platform-tour services).
+services:
+  - id: canva
+    title: Canva slides
+    icon: slideshow
+    url: https://canva.link/iz4w15t36689isb
+
+slides:
+  - title: Welcome
+    contentPath: 00-welcome.md
+  - title: Hands-on labs
+    contentPath: 01-handover.md
+  - title: Connect
+    contentPath: 02-author.md

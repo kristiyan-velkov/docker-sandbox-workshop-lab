@@ -1,0 +1,27 @@
+{
+  "title": "Docker Sandboxes Workshop",
+  "presentation": {
+    "title": "Your workshop presentation",
+    "description": "Start here if this is your first time — the slide deck introduces Docker Sandboxes, the lab flow, and what you will build across all six hands-on exercises.",
+    "url": "https://canva.link/iz4w15t36689isb",
+    "buttonLabel": "Open slides on Canva",
+    "author": {
+      "name": "Kristiyan Velkov",
+      "title": "Docker Captain",
+      "links": [
+        {
+          "label": "LinkedIn",
+          "url": "https://www.linkedin.com/in/kristiyanvelkov"
+        },
+        {
+          "label": "X",
+          "url": "https://x.com/krisvelkov"
+        }
+      ]
+    }
+  },
+  "github": {
+    "repo": "https://github.com/kristiyan-velkov/docker-sandbox-workshop/tree/main",
+    "label": "GitHub lab"
+  }
+}

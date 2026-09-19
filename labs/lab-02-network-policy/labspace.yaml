@@ -3,7 +3,7 @@ description: "Default-deny network policy, allow/deny hosts, and audit logging w
 
 catalog:
   icon: shield
-  tags: ["network", "policy", "governance"]
+  tags: ["github", "network", "policy", "governance"]
   estimatedMinutes: 35
   order: 2
 
@@ -43,11 +43,15 @@ sections:
     steps:
       - id: curl-allowed
         title: "Curl after allow rule"
-  - title: Sandbox-scoped deny
+  - title: Deny after removing allow
     contentPath: 04-scoped.md
     steps:
-      - id: scoped-deny
-        title: "Deny for this sandbox only"
+      - id: deny-conflict
+        title: "See allow/deny conflict error"
+      - id: rm-allow-rule
+        title: "Remove allow rule by resource"
+      - id: deny-global
+        title: "Add global deny rule"
   - title: Clean up
     contentPath: 05-cleanup.md
     steps:

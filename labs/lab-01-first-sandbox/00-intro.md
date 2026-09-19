@@ -1,12 +1,19 @@
-# Lab 1 — Your First Sandbox
+# Lab 1 — Run Your First Docker Sandbox
 
-Docker Sandboxes run AI coding agents in **isolated microVMs**. Each sandbox gets its own filesystem, Docker daemon, and network — the agent can build, install, and edit without touching your host.
+**GitHub lab:** [lab-01-first-sandbox](https://github.com/kristiyan-velkov/docker-sandbox-workshop/tree/main/lab-01-first-sandbox) — clone the folder and follow **[GUIDE.md](https://github.com/kristiyan-velkov/docker-sandbox-workshop/blob/main/lab-01-first-sandbox/GUIDE.md)** on your machine.
 
-In this lab you will:
+This Simspace version runs the same flow in a simulated terminal — no install required.
 
-1. Install and sign in with `sbx`
-2. Store your Cursor API key as a host secret
-3. Run `sbx run cursor` and create a file in the workspace
-4. Prove the agent **cannot** modify files outside the workspace mount
+## Why this lab matters
 
-> **Simulated mode:** commands run in a browser terminal with scripted output. For real `sbx`, use the **Live workshop** track (`bash start-labspace.sh`).
+This is the foundation of the workshop. Before network policy or secrets, you need to see what a sandbox **is**: a separate microVM with its own kernel. The agent runs inside that VM; only `workspace/` syncs from your disk — files outside that folder stay on the host.
+
+## What you'll do
+
+1. Install the `sbx` CLI and sign in to Docker
+2. Start a named sandbox — Cursor asks for permissions on first run
+3. Create `hello.txt` in the workspace
+4. Prove `delete-me.txt` outside the workspace cannot be deleted
+5. List sandboxes and remove the sandbox
+
+Use the **Host** terminal on the right. Click **Run** on each block, or type the command yourself.

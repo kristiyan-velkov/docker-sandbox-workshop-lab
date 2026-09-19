@@ -9,10 +9,8 @@ labs.json
 # as `sbx env run .sbxenv.yaml local.sbxenv.yaml`.
 local.sbxenv.yaml
 
-# workshop-app
-workshop-app/node_modules/
-workshop-app/.next/
-workshop-app/.env.local
+# Playground is cloned separately — see README
+/workshop-app/
 
 # attendee kit copies
 my-workshop-kit/

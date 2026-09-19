@@ -10,7 +10,8 @@ state:
   sandboxRunning: false
   network:
     dockerfrontendAllowed: false
-    dockerfrontendDeniedForSandbox: false
+    dockerfrontendDenied: false
+    allowRuleRemoved: false
 
 settings:
   pace:
@@ -29,16 +30,15 @@ scenarios:
     then:
       state: { policyInit: true }
       output:
-        - "Initialized global network policy: balanced"
-        - "Default deny with baseline allow-list for common dev domains."
+        - 'Global network policy initialized to "balanced".'
 
   - id: policy-ls
     when:
       command: [sbx, policy, ls]
     then:
       output:
-        - "PRESET: balanced (global)"
-        - "www.dockerfrontend.com — not in allow-list (blocked by default)"
+        - "POLICY                                 SOURCE   APPLIES TO                  SUMMARY"
+        - "local-policy                           local    all                         network: 187 allow; filesystem read: 1 allow; filesystem write: 1 allow"
 
   - id: sbx-run-lab2
     when:
@@ -49,32 +49,56 @@ scenarios:
     then:
       state: { sandboxRunning: true }
       output:
-        - "Creating sandbox 'lab2'…"
-        - "Sandbox ready. Network policy: balanced (default deny)."
+        - "Creating sandbox lab2..."
+        - "Sandbox lab2 started successfully"
+        - ""
+        - "AI: waiting for some question"
 
-  - id: curl-blocked
+  - id: sbx-run-lab2-name-first
+    when:
+      command: [sbx, run, cursor, ., --name, lab2]
+      terminal: sandbox
+    then:
+      state: { sandboxRunning: true }
+      output:
+        - "Creating sandbox lab2..."
+        - "Sandbox lab2 started successfully"
+        - ""
+        - "AI: waiting for some question"
+
+  - id: prompt-curl-blocked
     completes: curl-blocked
     when:
       command: [curl]
-      args:
-        0: { oneOf: ["https://www.dockerfrontend.com", "www.dockerfrontend.com"] }
-    then:
-      output:
-        - "curl: (7) Failed to connect — blocked by network policy"
-        - "detail: no matching allow rule for www.dockerfrontend.com:443"
-
-  - id: agent-curl-blocked
-    when:
-      agent: true
-      terminal: sandbox
       promptContains: ["dockerfrontend"]
       state: { network.dockerfrontendAllowed: false }
     then:
       output:
-        - " $ curl -sS https://www.dockerfrontend.com"
-        - " Blocked by network policy: domain www.dockerfrontend.com:443"
+        - "$ curl -sS https://www.dockerfrontend.com"
+        - "curl: (7) Failed to connect to www.dockerfrontend.com port 443 after 1 ms: Couldn't connect to server"
         - ""
-        - "The request was blocked — default deny is working."
+        - "Blocked by network policy — default deny is working."
+
+  - id: prompt-policy-log-blocked
+    when:
+      command: [Show]
+      promptContains: ["policy", "log", "lab2"]
+      state: { network.dockerfrontendAllowed: false }
+    then:
+      output:
+        - "TIME                  SANDBOX  HOST                       DECISION  RULE"
+        - "2026-09-16T14:01:02Z  lab2     www.dockerfrontend.com     deny      default-deny"
+
+  - id: policy-log-cmd
+    when:
+      command: [sbx, policy, log]
+      args:
+        0: lab2
+      state: { network.dockerfrontendAllowed: false }
+    then:
+      output:
+        - "TIME                  SANDBOX  HOST                       DECISION  RULE"
+        - "2026-09-16T14:01:02Z  lab2     www.dockerfrontend.com     deny      default-deny"
 
   - id: policy-allow
     when:
@@ -82,68 +106,140 @@ scenarios:
     then:
       state:
         network.dockerfrontendAllowed: true
+        network.allowRuleRemoved: false
+        network.dockerfrontendDenied: false
       output:
-        - "Allow rule added: www.dockerfrontend.com (global)"
+        - "Rule added to policy local (scope: global): 04919ce7-7e35-47f6-a907-61c125f6001f (www.dockerfrontend.com)"
 
-  - id: curl-allowed
+  - id: prompt-curl-allowed
     completes: curl-allowed
     when:
       command: [curl]
-      args:
-        0: { oneOf: ["https://www.dockerfrontend.com", "www.dockerfrontend.com"] }
-      state: { network.dockerfrontendAllowed: true }
+      promptContains: ["dockerfrontend"]
+      state: { network.dockerfrontendAllowed: true, network.dockerfrontendDenied: false }
     then:
       output:
-        - "HTTP/2 200"
-        - "<title>Docker Books — dockerfrontend.com</title>"
+        - "Confirmed allowed. Status is HTTP 200 (not 403)."
+        - ""
+        - "  Response headers"
+        - ""
+        - "  HTTP/1.0 200 Connection established"
 
   - id: agent-curl-allowed
+    completes: curl-allowed
     when:
       agent: true
       terminal: sandbox
       promptContains: ["dockerfrontend"]
-      state: { network.dockerfrontendAllowed: true }
+      state: { network.dockerfrontendAllowed: true, network.dockerfrontendDenied: false }
     then:
       output:
-        - " $ curl -sS https://www.dockerfrontend.com"
-        - " HTTP 200 — Docker books homepage loaded."
+        - "Confirmed allowed. Status is HTTP 200 (not 403)."
         - ""
-        - "Found titles: Docker Deep Dive, Docker Cookbook, and more."
+        - "  Response headers"
+        - ""
+        - "  HTTP/1.0 200 Connection established"
 
-  - id: policy-log
+  - id: prompt-policy-log-full
+    when:
+      command: [Show]
+      promptContains: ["policy", "log", "lab2"]
+      state: { network.dockerfrontendAllowed: true, network.dockerfrontendDenied: false }
+    then:
+      output:
+        - "TIME                  SANDBOX  HOST                       DECISION  RULE"
+        - "2026-09-16T14:01:02Z  lab2     www.dockerfrontend.com     deny      default-deny"
+        - "2026-09-16T14:03:11Z  lab2     www.dockerfrontend.com     allow     user"
+
+  - id: policy-log-cmd-full
     when:
       command: [sbx, policy, log]
       args:
         0: lab2
+      state: { network.dockerfrontendAllowed: true, network.dockerfrontendDenied: false }
     then:
       output:
-        - "TIME                 SANDBOX  HOST                      DECISION  RULE"
-        - "2026-07-08 14:01:02  lab2     www.dockerfrontend.com    BLOCKED   default-deny"
-        - "2026-07-08 14:03:11  lab2     www.dockerfrontend.com    ALLOWED   domain-allowed"
+        - "TIME                  SANDBOX  HOST                       DECISION  RULE"
+        - "2026-09-16T14:01:02Z  lab2     www.dockerfrontend.com     deny      default-deny"
+        - "2026-09-16T14:03:11Z  lab2     www.dockerfrontend.com     allow     user"
 
-  - id: policy-deny-scoped
-    completes: scoped-deny
+  - id: policy-deny-global-conflict
+    completes: deny-conflict
     when:
       command: [sbx, policy, deny, network]
       args:
-        --sandbox: lab2
         0: www.dockerfrontend.com
+      state: { network.dockerfrontendAllowed: true }
+    then:
+      stderr:
+        - "ERROR: deny network rule: deny:"
+        - '  "www.dockerfrontend.com" conflicts with existing allow rule "04919ce7-7e35-47f6-a907-61c125f6001f" (name "04919ce7-7e35-47f6-a907-61c125f6001f")'
+      exit: 1
+
+  - id: policy-rm-resource
+    completes: rm-allow-rule
+    when:
+      command: [sbx, policy, rm, network]
+      args:
+        --resource: www.dockerfrontend.com
     then:
       state:
-        network.dockerfrontendDeniedForSandbox: true
         network.dockerfrontendAllowed: false
+        network.allowRuleRemoved: true
+        network.dockerfrontendDenied: false
       output:
-        - "Deny rule added: www.dockerfrontend.com (sandbox: lab2 only)"
+        - "Rule removed from policy local: resources=www.dockerfrontend.com"
 
-  - id: curl-blocked-again
+  - id: policy-deny-global
+    completes: deny-global
+    when:
+      command: [sbx, policy, deny, network]
+      args:
+        0: www.dockerfrontend.com
+      state:
+        {
+          network.allowRuleRemoved: true,
+          network.dockerfrontendDenied: false,
+        }
+    then:
+      state:
+        network.dockerfrontendDenied: true
+      output:
+        - "Rule added to policy local (scope: global): 841c1935-dfc6-4829-b548-51a4e71ea6b6 (www.dockerfrontend.com)"
+
+  - id: prompt-curl-blocked-denied
     when:
       command: [curl]
-      args:
-        0: { oneOf: ["https://www.dockerfrontend.com"] }
-      state: { network.dockerfrontendDeniedForSandbox: true }
+      promptContains: ["dockerfrontend"]
+      state: { network.dockerfrontendDenied: true }
     then:
       output:
-        - "curl: (7) Failed to connect — blocked by sandbox-scoped deny rule"
+        - "$ curl -sS https://www.dockerfrontend.com"
+        - "curl: (7) Failed to connect to www.dockerfrontend.com port 443 after 1 ms: Couldn't connect to server"
+        - ""
+        - "Blocked by network policy — global deny is active."
+
+  - id: agent-curl-blocked-denied
+    when:
+      agent: true
+      terminal: sandbox
+      promptContains: ["dockerfrontend"]
+      state: { network.dockerfrontendDenied: true }
+    then:
+      output:
+        - "$ curl -sS https://www.dockerfrontend.com"
+        - "curl: (7) Failed to connect to www.dockerfrontend.com port 443 after 1 ms: Couldn't connect to server"
+        - ""
+        - "Blocked by network policy — global deny is active."
+
+  - id: policy-rm
+    when:
+      command: [sbx, policy, rm, network]
+    then:
+      stderr:
+        - "Specify a resource to remove:"
+        - "  sbx policy rm network --resource www.dockerfrontend.com"
+      exit: 1
 
   - id: sbx-rm-lab2
     completes: cleanup
@@ -153,4 +249,6 @@ scenarios:
         --force: { any: true }
     then:
       state: { sandboxRunning: false }
-      output: ["lab2 removed"]
+      output:
+        - "Deleting sandbox lab2..."
+        - "Sandbox 'lab2' removed"

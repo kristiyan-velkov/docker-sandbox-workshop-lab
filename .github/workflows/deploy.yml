@@ -1,9 +1,8 @@
 name: Deploy labs to GitHub Pages
 
-# Validates your labs and publishes them to GitHub Pages on every push to main.
-# All the work lives in the reusable workflow in dockersamples/simspace, so this
-# file stays a one-liner. Enable Pages first: Settings → Pages → Source:
-# "GitHub Actions".
+# Validates labs, assembles the Simspace site with the featured presentation
+# callout, and publishes to GitHub Pages.
+# Enable Pages first: Settings → Pages → Source: "GitHub Actions".
 
 on:
   push:
@@ -15,17 +14,48 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Validate labs
+        run: |
+          docker pull dockersamples/simspace-authoring:latest
+          docker run --rm \
+            -v "${{ github.workspace }}/labs:/labs:ro" \
+            dockersamples/simspace-authoring:latest \
+            npm run validate-lab -- /labs
+
+  build:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Assemble static site
+        run: |
+          test -f public/config.json
+          test -f scripts/assemble-site.sh
+          chmod +x scripts/assemble-site.sh
+          docker pull dockersamples/simspace:latest
+          docker pull dockersamples/simspace-authoring:latest
+          RUNTIME_IMAGE=dockersamples/simspace:latest \
+          AUTHORING_IMAGE=dockersamples/simspace-authoring:latest \
+          ./scripts/assemble-site.sh "${{ github.workspace }}/site" "${{ github.workspace }}/labs"
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site
+
   deploy:
-    uses: dockersamples/simspace/.github/workflows/deploy-lab.yml@main
-    with:
-      labs-dir: labs
-      # Pin to a released version for stable labs, e.g. "1". "latest" tracks the
-      # newest runtime — convenient, but the app can change under you.
-      runtime-tag: "latest"
-      # OPTIONAL — presence + analytics. Point this at your deployed `pulse`
-      # backend to turn on live "who's here" presence and the instructor
-      # insights dashboard for ALL labs. Opt a single lab out with
-      # `tracking: false` in its labspace.yaml. Leave it commented to deploy
-      # with tracking disabled (labs stay fully static, no backend calls).
-      # pulse-endpoint: "https://pulse.example.com"
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

@@ -6,8 +6,15 @@ Run **policy commands on the host** first, then work from **`lab-02-network-poli
 
 Run on the host **before** starting the sandbox:
 
+`sbx policy init balanced` writes the global default-deny preset ([local policy](https://docs.docker.com/ai/sandboxes/governance/local/)):
+
 ```bash
 sbx policy init balanced
+```
+
+`sbx policy ls` prints the active preset and rules:
+
+```bash
 sbx policy ls
 ```
 
@@ -15,7 +22,13 @@ If you see `global network policy is already initialized`, reset and init again:
 
 ```bash
 sbx policy reset
+```
+
+```bash
 sbx policy init balanced
+```
+
+```bash
 sbx policy ls
 ```
 
@@ -25,6 +38,9 @@ Expect the balanced allow-list defaults — `www.dockerfrontend.com` stays block
 
 ```bash
 cd lab-02-network-policy/workspace
+```
+
+```bash
 sbx run cursor . --name lab2
 ```
 
@@ -145,14 +161,29 @@ Find UUIDs in `sbx policy ls` (not `sbx policy log`), then remove by ID or resou
 
 ```bash
 sbx policy ls --type network lab2 | grep dockerfrontend
+```
 
-# By ID (UUID from POLICY/RULE column):
-sbx policy rm network --id <uuid> --sandbox lab2
+Remove the sandbox-scoped rule by resource ([local policy](https://docs.docker.com/ai/sandboxes/governance/local/)):
 
-# Or by resource:
+```bash
 sbx policy rm network --sandbox lab2 --resource www.dockerfrontend.com
+```
+
+Remove the global allow if you added one:
+
+```bash
 sbx policy rm network --resource www.dockerfrontend.com
+```
+
+Confirm the rules are gone:
+
+```bash
 sbx policy ls --type network lab2 | grep dockerfrontend
+```
+
+Delete the sandbox. Host files stay:
+
+```bash
 sbx rm lab2 --force
 ```
 

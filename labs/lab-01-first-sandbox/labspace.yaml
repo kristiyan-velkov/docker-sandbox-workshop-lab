@@ -1,9 +1,9 @@
 title: "Lab 1 — Your First Sandbox"
-description: "Install sbx, store a Cursor secret, run your first agent, and test workspace boundaries."
+description: "Install sbx, run your first agent, prove workspace isolation, and remove the sandbox."
 
 catalog:
   icon: rocket_launch
-  tags: ["sbx", "getting started"]
+  tags: ["github", "sbx", "getting started"]
   estimatedMinutes: 25
   order: 1
 
@@ -17,7 +17,7 @@ terminals:
 files:
   delete-me.txt: |
     This file lives OUTSIDE the synced workspace.
-    The agent should NOT be able to delete it.
+    The sandbox should NOT be able to delete it.
   workspace/.keep: ""
 
 sections:
@@ -26,26 +26,30 @@ sections:
   - title: Install and sign in
     contentPath: 01-install.md
     steps:
-      - id: sbx-version
-        title: "Check sbx version"
+      - id: sbx-install
+        title: "Install sbx with Homebrew"
       - id: sbx-login
         title: "Sign in with sbx login"
-  - title: Secrets and first run
+      - id: sbx-version
+        title: "Check sbx version"
+  - title: First run
     contentPath: 02-run.md
     steps:
-      - id: secret-set
-        title: "Store Cursor API key"
       - id: sbx-run
         title: "Start first sandbox"
+      - id: hello-chat
+        title: "Simple hello prompt"
+      - id: hello-file
+        title: "Create hello.txt"
   - title: Workspace boundary
     contentPath: 03-boundary.md
     steps:
-      - id: hello-file
-        title: "Create hello.txt in workspace"
       - id: boundary-test
-        title: "Confirm delete-me.txt is protected"
+        title: "Confirm delete-me.txt is outside the sandbox"
   - title: Clean up
     contentPath: 04-cleanup.md
     steps:
+      - id: useful-ls
+        title: "List sandboxes"
       - id: cleanup
-        title: "Remove sandbox"
+        title: "Remove the sandbox"

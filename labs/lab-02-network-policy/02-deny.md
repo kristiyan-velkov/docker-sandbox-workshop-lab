@@ -1,17 +1,19 @@
 # Default deny
 
-In the sandbox, ask Cursor:
+`www.dockerfrontend.com` is not on the balanced allow-list, so the proxy should block it.
 
-> curl https://www.dockerfrontend.com and show me the full response. Confirm this URL is blocked by sandbox network policy.
-
-Or run curl directly:
+In the **Sandbox** terminal, ask Cursor (or click Run):
 
 ```bash terminal-id=sandbox
-curl https://www.dockerfrontend.com
+curl https://www.dockerfrontend.com and show me the full response. Confirm this URL is blocked by sandbox network policy.
 ```
 
-Check the audit log on the host:
+Expected: connection failed — default deny is working.
+
+Then check the audit trail on the **Host** terminal:
 
 ```bash terminal-id=host
-sbx policy log lab2 --limit 10
+Show the sbx policy log for lab2 with the last 10 entries and which hosts were blocked.
 ```
+
+Expected: `www.dockerfrontend.com` with decision **deny**.

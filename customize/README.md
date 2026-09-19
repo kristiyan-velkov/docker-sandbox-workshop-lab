@@ -9,6 +9,14 @@ Workshop assets for [Docker Sandboxes customize](https://docs.docker.com/ai/sand
 
 **Repository:** [github.com/kristiyan-velkov/docker-sandbox-workshop](https://github.com/kristiyan-velkov/docker-sandbox-workshop)
 
+## Playground app
+
+```bash
+git clone https://github.com/kristiyan-velkov/docker-sandbox-workshop.git
+cd docker-sandbox-workshop/workshop-app
+npm install
+```
+
 ## Run with kit (Lab 5)
 
 Workspace **must** be `workshop-app/` (contains `package.json`):

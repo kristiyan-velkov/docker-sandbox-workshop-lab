@@ -9,9 +9,16 @@ Simspace + Labspace workshop on [Docker Sandboxes](https://docs.docker.com/ai/sa
 | `labs/` | Simspace entries — `labspace.yaml`, `simulator.yaml`, `*.md` per lab |
 | `docs/` | Labspace live-track guides (real `sbx` commands) |
 | `labspace.yaml` | Labspace manifest for `start-labspace.sh` |
-| `workshop-app/` | Next.js playground for labs 4–6 |
 | `customize/` | Sandbox templates and `workshop-app-nextjs` kit |
 | `kit-template/` | Blank kit for Lab 6 |
+
+Playground for labs 4–6 (not in this repo):
+
+```bash
+git clone https://github.com/kristiyan-velkov/docker-sandbox-workshop.git
+cd docker-sandbox-workshop/workshop-app
+npm install
+```
 
 ## Two tracks
 
@@ -31,7 +38,7 @@ Edit `labs/<id>/`:
 - `simulator.yaml` — command scenarios, state, agent prompts
 - `*.md` — instruction sections (use `terminal-id=host` on code blocks)
 
-Regenerate from workshop GUIDEs: `python3 scripts/generate-labs.py`
+Labs and live-track docs are authored in `labs/` and `docs/`. Validate with `docker compose run --rm validate`.
 
 ## Security
 

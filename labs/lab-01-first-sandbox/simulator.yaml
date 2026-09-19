@@ -3,11 +3,10 @@ version: "2.0"
 metadata:
   id: lab-01-first-sandbox
   title: "Lab 1 — Your First Sandbox"
-  summary: "Install sbx, run Cursor in a microVM, and prove workspace isolation."
+  summary: "Install sbx, run Cursor, prove workspace isolation, and remove the sandbox."
 
 state:
   loggedIn: false
-  secretSet: false
   sandboxRunning: false
   helloCreated: false
 
@@ -20,116 +19,206 @@ defaults:
   unmatched:
     stderr: ["Error: that command isn't part of this lab yet."]
     exit: 1
-  unmatchedAgent:
-    output:
-      - "Try the prompts in the left panel — this lab scripts specific agent tasks."
 
 scenarios:
-  - id: sbx-version
-    completes: sbx-version
+  # Specific matchers first (first-match-wins). Paths use positional tokens only —
+  # flags like --cask live in when.args (see lab 4 clone-run).
+  - id: brew-trust-docker-tap
     when:
-      command: [sbx, version]
+      command: [brew, trust, docker/tap]
     then:
       output:
-        - "sbx version 0.39.0 (darwin/arm64)"
-        - "daemon: running"
+        - "✔ docker/tap is now a trusted tap"
+
+  - id: brew-tap-docker-tap
+    when:
+      command: [brew, tap, docker/tap]
+    then:
+      output:
+        - "==> Tapping docker/tap"
+        - "Tapped 1 cask (13 files, 8.5KB)."
+
+  - id: brew-install-sbx-cask
+    completes: sbx-install
+    when:
+      command: [brew, install, docker/tap/sbx]
+    then:
+      output:
+        - "==> Fetching downloads for: sbx"
+        - "==> Installing Cask sbx"
+        - "==> Linking Binary 'sbx' to '/opt/homebrew/bin/sbx'"
+        - "🍺  sbx was successfully installed!"
+
+  - id: brew-trust
+    when:
+      command: [brew, trust]
+      args:
+        0: docker/tap
+    then:
+      output:
+        - "✔ docker/tap is now a trusted tap"
+
+  - id: brew-tap
+    when:
+      command: [brew, tap]
+      args:
+        0: docker/tap
+    then:
+      output:
+        - "==> Tapping docker/tap"
+        - "Tapped 1 cask (13 files, 8.5KB)."
+
+  - id: brew-install
+    completes: sbx-install
+    when:
+      command: [brew, install]
+      args:
+        0: docker/tap/sbx
+    then:
+      output:
+        - "==> Fetching downloads for: sbx"
+        - "==> Installing Cask sbx"
+        - "==> Linking Binary 'sbx' to '/opt/homebrew/bin/sbx'"
+        - "🍺  sbx was successfully installed!"
+
+  - id: docker-tap-hint
+    when:
+      command: [docker, tap]
+    then:
+      stderr:
+        - "docker: 'tap' is not a docker command."
+        - ""
+        - "Use Homebrew instead:"
+        - "  brew trust docker/tap"
+        - "  brew install docker/tap/sbx"
+      exit: 1
 
   - id: sbx-login
     completes: sbx-login
     when:
       command: [sbx, login]
     then:
-      state: { loggedIn: true }
       output:
-        - "Opening browser for Docker sign-in…"
-        - "Logged in as kristiyan.velkov"
+        - "By logging in, you agree to our Subscription Service Agreement. For more details, see https://www.docker.com/legal/docker-subscription-service-agreement/"
+        - ""
+        - "Waiting for authentication..."
+      input:
+        prompt: "Your Docker Hub username: "
+        key: username
+        then:
+          output:
+            - "Signed in as {{ input.username }}."
+          state:
+            loggedIn: true
+            dockerUsername: "{{ input.username }}"
 
-  - id: secret-set
-    completes: secret-set
+  - id: sbx-version
+    completes: sbx-version
     when:
-      command: [sbx, secret, set, -g, cursor]
-    then:
-      state: { secretSet: true }
-      output:
-        - "Secret stored for group: cursor"
-        - "Inside the VM, CURSOR_API_KEY will show as proxy-managed — never your raw key."
-
-  - id: secret-ls
-    when:
-      command: [sbx, secret, ls]
+      command: [sbx, version]
     then:
       output:
-        - "GROUP   NAME    SCOPE"
-        - "cursor  cursor  global"
+        - "sbx version: v0.43.0"
 
   - id: sbx-run
     completes: sbx-run
     when:
-      command: [sbx, run, cursor, .]
+      command: [sbx, run, cursor]
       args:
         --name: { any: true }
     then:
       state: { sandboxRunning: true }
       output:
-        - "Creating sandbox 'my-sandbox' (agent: cursor)…"
-        - { text: "Syncing workspace/ into the microVM…", delay: pull }
-        - "Sandbox ready. Starting Cursor agent."
-      session:
-        prompt: "cursor> "
-        intro:
-          - "I'm Cursor, running inside a Docker Sandbox microVM."
-          - "Only the workspace/ folder is synced — ask me to create hello.txt."
+        - "Creating sandbox my-sandbox..."
+        - { text: "Starting sandbox my-sandbox...", delay: pull }
+        - "Sandbox my-sandbox started successfully"
+        - ""
+        - "AI: waiting for some question"
 
-  - id: agent-hello
+  - id: sbx-run-name-first
+    completes: sbx-run
+    when:
+      command: [sbx, run, --name, my-sandbox, cursor]
+    then:
+      state: { sandboxRunning: true }
+      output:
+        - "Creating sandbox my-sandbox..."
+        - "Sandbox my-sandbox started successfully"
+        - ""
+        - "AI: waiting for some question"
+
+  - id: prompt-hello
+    completes: hello-chat
+    when:
+      command: [Say, hello]
+    then:
+      output:
+        - "Hello — I'm Cursor, running inside this Docker Sandbox."
+        - ""
+        - "This is Linux (the sandbox kernel), not your Mac."
+        - "I can read and write the workspace mount. I cannot see the rest of your host disk."
+
+  - id: prompt-hello-file
     completes: hello-file
     when:
-      agent: true
+      command: [Create]
       promptContains: ["hello.txt"]
     then:
       state: { helloCreated: true }
       output:
-        - "Creating hello.txt in the workspace…"
+        - "Created hello.txt in the workspace."
         - ""
-        - " $ cat hello.txt"
-        - " Hello from Docker Sandboxes!"
-        - ""
-        - "Done — the file is synced back to your host workspace/ folder."
+        - "$ cat hello.txt"
+        - "Hello from Docker Sandboxes!"
       files:
-        - path: workspace/hello.txt
+        - create: workspace/hello.txt
           content: "Hello from Docker Sandboxes!\n"
 
-  - id: agent-boundary
+  - id: prompt-boundary
     completes: boundary-test
     when:
-      agent: true
+      command: [Try, to, delete]
+    then:
+      output:
+        - "$ rm ../delete-me.txt"
+        - "rm: cannot remove '../delete-me.txt': Permission denied"
+        - ""
+        - "That file is outside the sandbox workspace — I cannot delete it from here."
+
+  - id: prompt-boundary-delete
+    completes: boundary-test
+    when:
+      command: [Delete]
       promptContains: ["delete-me"]
     then:
       output:
-        - "Attempting to delete ../delete-me.txt …"
+        - "$ rm ../delete-me.txt"
+        - "rm: cannot remove '../delete-me.txt': Permission denied"
         - ""
-        - " $ rm ../delete-me.txt"
-        - " rm: cannot remove '../delete-me.txt': Permission denied"
-        - ""
-        - "I cannot delete files outside the workspace mount. delete-me.txt remains on the host."
+        - "That file is outside the sandbox workspace — I cannot delete it from here."
 
   - id: sbx-ls-running
+    completes: useful-ls
     when:
       command: [sbx, ls]
       state: { sandboxRunning: true }
     then:
       output:
-        - "SANDBOX        AGENT   STATUS    PORTS   WORKSPACE"
-        - "my-sandbox     cursor  running           workspace/"
+        - "SANDBOX             AGENT    STATUS    PORTS   WORKSPACE"
+        - "my-sandbox          cursor   running           /workspace"
 
   - id: sbx-rm
     completes: cleanup
     when:
       command: [sbx, rm]
       args:
+        0: my-sandbox
         --force: { any: true }
     then:
       state: { sandboxRunning: false }
-      output: ["my-sandbox removed"]
+      output:
+        - "Deleting sandbox my-sandbox..."
+        - "Sandbox 'my-sandbox' removed"
 
   - id: sbx-ls-empty
     when:
@@ -137,5 +226,4 @@ scenarios:
       state: { sandboxRunning: false }
     then:
       output:
-        - "SANDBOX   AGENT   STATUS   PORTS   WORKSPACE"
-        - "(no sandboxes)"
+        - "SANDBOX             AGENT    STATUS    PORTS   WORKSPACE"

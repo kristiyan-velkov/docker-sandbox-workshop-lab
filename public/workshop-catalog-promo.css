@@ -1,0 +1,135 @@
+/* Featured presentation callout on the Simspace catalog landing page. */
+
+.catalog-promo {
+  margin-bottom: 2.5rem;
+  padding: 1.5rem 1.75rem;
+  border: 1px solid rgba(37, 96, 255, 0.28);
+  border-radius: 0.85rem;
+  background: rgba(37, 96, 255, 0.06);
+}
+
+.catalog-promo-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.catalog-promo-icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.6rem;
+  color: var(--bs-primary);
+  background: rgba(37, 96, 255, 0.12);
+}
+
+.catalog-promo-icon .material-symbols-outlined {
+  font-size: 1.75rem;
+}
+
+.catalog-promo-copy {
+  min-width: 0;
+}
+
+.catalog-promo-title {
+  margin: 0 0 0.45rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.catalog-promo-desc {
+  margin: 0;
+  color: var(--bs-secondary-color);
+  line-height: 1.5;
+}
+
+.catalog-promo-author {
+  margin: 1rem 0 0;
+}
+
+.catalog-promo-author-name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--bs-body-color);
+}
+
+.catalog-promo-author-title {
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+  color: var(--bs-secondary-color);
+}
+
+.catalog-promo-socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.55rem;
+}
+
+.catalog-promo-socials a {
+  color: var(--bs-primary);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.catalog-promo-socials a:hover,
+.catalog-promo-socials a:focus-visible {
+  text-decoration: underline;
+}
+
+.catalog-chip-github {
+  color: var(--bs-body-color);
+  background: var(--bs-secondary-bg);
+  text-decoration: none;
+}
+
+.catalog-chip-github:hover,
+.catalog-chip-github:focus-visible {
+  color: var(--bs-primary);
+  background: rgba(37, 96, 255, 0.1);
+}
+
+.catalog-promo-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 1.1rem;
+  padding: 0.65rem 1.15rem;
+  border-radius: 999px;
+  background: var(--bs-primary);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.catalog-promo-action:hover,
+.catalog-promo-action:focus-visible {
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(37, 96, 255, 0.25);
+}
+
+.catalog-promo-action .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+/* Clickable URLs in simulated terminal output (Simspace renders plain text). */
+.mock-term .term-line a.term-link {
+  color: #4fc3f7;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.mock-term .term-line a.term-link:hover,
+.mock-term .term-line a.term-link:focus-visible {
+  color: #7ee787;
+}
