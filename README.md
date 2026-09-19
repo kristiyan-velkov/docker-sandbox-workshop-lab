@@ -38,7 +38,7 @@ Validate all labs:
 docker compose run --rm validate
 ```
 
-Edit content under `labs/<id>/` — each lab has `labspace.yaml`, `simulator.yaml`, and markdown sections. Push to `main` to deploy to GitHub Pages (enable Pages → Source: GitHub Actions).
+Edit content under `labs/<id>/` — each lab has `labspace.yaml`, `simulator.yaml`, and markdown sections. Push to `main` to validate and build the static site; deploy runs when GitHub Pages is enabled (**Settings → Pages → Source: GitHub Actions**). Private repos need a plan that includes Pages, or make the repo public.
 
 ## Live workshop (Labspace)
 

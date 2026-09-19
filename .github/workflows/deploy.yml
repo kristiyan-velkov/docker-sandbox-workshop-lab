@@ -50,8 +50,35 @@ jobs:
         with:
           path: site
 
-  deploy:
+  check-pages:
     needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      available: ${{ steps.check.outputs.available }}
+    steps:
+      - name: Check GitHub Pages is enabled
+        id: check
+        uses: actions/github-script@60a0d83039c673a2365e4dcb4b0e432b8b7cf8dc # v7.0.1
+        with:
+          script: |
+            try {
+              await github.rest.repos.getPages({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+              });
+              core.setOutput("available", "true");
+            } catch (error) {
+              core.notice(
+                "GitHub Pages is not enabled for this repository. " +
+                  "Settings → Pages → Build and deployment → Source: GitHub Actions. " +
+                  "Private repos need a GitHub plan that includes Pages."
+              );
+              core.setOutput("available", "false");
+            }
+
+  deploy:
+    needs: [build, check-pages]
+    if: needs.check-pages.outputs.available == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
